@@ -1,0 +1,61 @@
+:root {
+  --cream: #fff9f4;
+  --ink: #4a3442;
+  --muted: #987487;
+  --pink: #e995b3;
+  --hot-pink: #e85e91;
+  --pale-pink: #fff0f5;
+  --pink-line: #f0cada;
+  --mint: #75cfc1;
+  --purple: #8269ac;
+  --focus: #4db9aa;
+  --sans: 'Hiragino Maru Gothic ProN', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+  color: var(--ink);
+  background: #ebdde4;
+  font-family: var(--sans);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+html {
+  background: #ebdde4;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 50% 0, #fff4f8 0, transparent 48%),
+    #ebdde4;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  appearance: none;
+}
+
+::selection {
+  color: var(--ink);
+  background: #9ce3d8;
+}
