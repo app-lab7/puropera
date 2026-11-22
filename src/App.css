@@ -2745,7 +2745,7 @@
 
 .favorite-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px 2px;
   margin: 0;
   padding: 0;
@@ -2909,4 +2909,147 @@
   background: var(--hot-pink);
   border-color: var(--hot-pink);
   color: #fff;
+}
+
+/* Design variants */
+.chip-options--wrap {
+  flex-wrap: wrap;
+}
+
+.details-preview {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  background: var(--book-paper, #fffaf8);
+  border-radius: 14px;
+}
+
+.details-preview > small {
+  color: var(--book-deep, var(--hot-pink));
+  font-size: 10px;
+  font-weight: 900;
+}
+
+/* favorites: round / square / star */
+.favorite-grid--round li {
+  aspect-ratio: 1;
+  padding: 18% 12% 18%;
+}
+
+.favorite-grid--square li {
+  aspect-ratio: 1;
+  padding: 16% 10% 12%;
+  transform: rotate(-3deg);
+}
+
+.favorite-grid--square li:nth-child(even) {
+  transform: rotate(2.5deg) translateY(6px);
+}
+
+.favorite-grid--square li svg {
+  fill: var(--book-paper, #fff);
+}
+
+.favorite-grid--square li::before {
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  width: 34px;
+  height: 12px;
+  background: rgb(255 232 150 / 85%);
+  content: '';
+  transform: translateX(-50%) rotate(-3deg);
+}
+
+.favorite-grid--bubble li {
+  padding: 14% 12% 30%;
+}
+
+/* questions: sticky / simple */
+.fill-lines--sticky {
+  background: var(--book-light, #ffe9a8);
+  border: 0;
+  border-radius: 4px;
+  box-shadow: 3px 4px 0 rgb(0 0 0 / 10%);
+  transform: rotate(-1deg);
+}
+
+.fill-lines--sticky::before {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 70px;
+  height: 18px;
+  background: rgb(255 255 255 / 60%);
+  content: '';
+  transform: translateX(-50%) rotate(2deg);
+}
+
+.fill-lines--sticky .deco-title {
+  background: transparent;
+}
+
+.fill-lines--sticky .blank {
+  background: rgb(255 255 255 / 70%);
+}
+
+.fill-lines--simple {
+  background: transparent;
+  border: 0;
+  border-top: 2px dotted var(--book-main, var(--pink));
+  border-bottom: 2px dotted var(--book-main, var(--pink));
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.fill-lines--simple .deco-title {
+  background: var(--book-paper, #fff);
+}
+
+/* free space: photo / stitch */
+.free-space--photo {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: rotate(-1.5deg);
+}
+
+.free-space--photo::after {
+  display: none;
+}
+
+.free-space--photo::before {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  z-index: 3;
+  width: 72px;
+  height: 18px;
+  background: rgb(255 232 150 / 85%);
+  content: '';
+  transform: translateX(-50%) rotate(2deg);
+}
+
+.free-space--photo .free-space-inner {
+  min-height: 130px;
+  padding: 18px 16px 30px;
+  border-radius: 2px;
+  box-shadow: 2px 4px 10px rgb(0 0 0 / 18%);
+}
+
+.free-space--stitch {
+  background: var(--book-main, var(--pink));
+  border-radius: 22px;
+  box-shadow: none;
+}
+
+.free-space--stitch::after {
+  display: none;
+}
+
+.free-space--stitch .free-space-inner {
+  border: 2px dashed var(--book-main, var(--pink));
+  border-radius: 16px;
+  outline: 3px solid #fff;
+  outline-offset: -8px;
 }

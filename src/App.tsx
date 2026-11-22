@@ -13,6 +13,10 @@ type FavoriteKey =
   | 'food' | 'drink' | 'animal' | 'color'
   | 'anime' | 'game' | 'music' | 'hobby'
 
+type FavoriteShape = 'heart' | 'round' | 'square' | 'bubble'
+type QuestionStyle = 'note' | 'sticky' | 'simple'
+type FreeFrame = 'round' | 'photo' | 'stitch'
+
 type BloodType = '' | 'A' | 'B' | 'O' | 'AB'
 
 type Profile = {
@@ -28,6 +32,9 @@ type Profile = {
   personality: string
   favorites: Record<FavoriteKey, string>
   freeSpace: string
+  favoriteShape: FavoriteShape
+  questionStyle: QuestionStyle
+  freeFrame: FreeFrame
   avatar: AvatarId
   customAvatar?: string
   bookColor: BookColor
@@ -60,6 +67,32 @@ const favoriteOptions: { id: FavoriteKey; label: string }[] = [
   { id: 'music', label: '音楽' },
   { id: 'hobby', label: 'しゅみ' },
 ]
+
+const favoriteShapeOptions: { id: FavoriteShape; label: string }[] = [
+  { id: 'heart', label: '♡ ハート' },
+  { id: 'round', label: '○ まる' },
+  { id: 'square', label: '□ ふせん' },
+  { id: 'bubble', label: '💬 ふきだし' },
+]
+
+const questionStyleOptions: { id: QuestionStyle; label: string }[] = [
+  { id: 'note', label: 'ノート' },
+  { id: 'sticky', label: 'ふせん' },
+  { id: 'simple', label: 'シンプル' },
+]
+
+const freeFrameOptions: { id: FreeFrame; label: string }[] = [
+  { id: 'round', label: 'まる枠' },
+  { id: 'photo', label: 'ポラロイド' },
+  { id: 'stitch', label: 'ぬいめ' },
+]
+
+const favoriteShapePaths: Record<FavoriteShape, string> = {
+  heart: 'M50 88C20 64 4 48 4 28 4 14 15 4 28 4c9 0 17 5 22 13C55 9 63 4 72 4c13 0 24 10 24 24 0 20-16 36-46 60Z',
+  round: 'M50 3a46 43 0 1 0 .01 0Z',
+  square: 'M8 6h84a3 3 0 0 1 3 3v74a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3Z',
+  bubble: 'M14 4h72a10 10 0 0 1 10 10v46a10 10 0 0 1-10 10H62L50 88 38 70H14A10 10 0 0 1 4 60V14A10 10 0 0 1 14 4Z',
+}
 
 const bloodTypeOptions: BloodType[] = ['A', 'B', 'O', 'AB']
 
@@ -106,6 +139,9 @@ const initialProfile: Profile = {
   personality: '',
   favorites: { ...emptyFavorites, drink: 'クリームソーダ', game: 'リズムゲーム', music: 'ゲーム音楽' },
   freeSpace: '',
+  favoriteShape: 'heart',
+  questionStyle: 'note',
+  freeFrame: 'round',
   avatar: 'violet',
   bookColor: 'pink',
   bookShape: 'classic',
@@ -178,6 +214,9 @@ const publicProfile: Profile = {
     hobby: 'イラスト・星空さんぽ',
   },
   freeSpace: 'ゲーム配信とイラストをゆるっと更新中！遊びにきてね✦',
+  favoriteShape: 'heart',
+  questionStyle: 'note',
+  freeFrame: 'round',
   avatar: 'violet',
   bookColor: 'violet',
   bookShape: 'round',
@@ -468,7 +507,7 @@ function ProfileDetails({ profile }: { profile: Profile }) {
   return (
     <>
       {(profile.nickname || hasBirthday || profile.bloodType || profile.personality) && (
-        <div className="fill-lines">
+        <div className={`fill-lines fill-lines--${profile.questionStyle}`}>
           <h2 className="deco-title"><span aria-hidden="true">✦</span> ひみつのしつもん <span aria-hidden="true">✦</span></h2>
           {profile.nickname && (
             <p><i aria-hidden="true">♡</i>みんなには<Blank value={profile.nickname} />ってよばれてるよ</p>
@@ -491,11 +530,11 @@ function ProfileDetails({ profile }: { profile: Profile }) {
       {filledFavorites.length > 0 && (
         <div className="favorite-section">
           <h2 className="deco-title deco-title--ribbon">MY FAVORITE</h2>
-          <ul className="favorite-grid">
+          <ul className={`favorite-grid favorite-grid--${profile.favoriteShape}`}>
             {filledFavorites.map((option) => (
               <li key={option.id}>
                 <svg viewBox="0 0 100 92" aria-hidden="true" preserveAspectRatio="none">
-                  <path d="M50 88C20 64 4 48 4 28 4 14 15 4 28 4c9 0 17 5 22 13C55 9 63 4 72 4c13 0 24 10 24 24 0 20-16 36-46 60Z" />
+                  <path d={favoriteShapePaths[profile.favoriteShape]} />
                 </svg>
                 <span className="favorite-label">★ {option.label} ★</span>
                 <strong>{profile.favorites[option.id]}</strong>
@@ -506,7 +545,7 @@ function ProfileDetails({ profile }: { profile: Profile }) {
       )}
 
       {profile.freeSpace && (
-        <div className="free-space">
+        <div className={`free-space free-space--${profile.freeFrame}`}>
           <div className="free-space-inner">
             <h2>✧ FREE SPACE ✧</h2>
             <p>{profile.freeSpace}</p>
@@ -897,6 +936,43 @@ function EditProfilePage({
             onChange={(event) => updateField('freeSpace', event.target.value)}
           />
         </label>
+
+        <fieldset className="detail-fields detail-style">
+          <legend>✦ デザインをえらぶ</legend>
+          {([
+            ['favoriteShape', 'お気に入りのカード', favoriteShapeOptions],
+            ['questionStyle', 'ひみつのしつもん', questionStyleOptions],
+            ['freeFrame', 'フリースペースの枠', freeFrameOptions],
+          ] as const).map(([field, title, options]) => (
+            <div key={field} className="form-field form-field--row">
+              <span>{title}</span>
+              <div className="chip-options chip-options--wrap">
+                {options.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    className={draft[field] === option.id ? 'selected' : ''}
+                    aria-pressed={draft[field] === option.id}
+                    onClick={() => setDraft((current) => ({ ...current, [field]: option.id }))}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+          <div className={`details-preview ${bookStyleClasses(draft)}`}>
+            <small>プレビュー</small>
+            <ProfileDetails
+              profile={{
+                ...publicProfile,
+                favoriteShape: draft.favoriteShape,
+                questionStyle: draft.questionStyle,
+                freeFrame: draft.freeFrame,
+              }}
+            />
+          </div>
+        </fieldset>
 
         <button className="save-button" type="submit">
           <span>書いた内容を保存</span>
