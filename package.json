@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/dancing-script": "^5.3.0",
+    "@fontsource/fredoka": "^5.3.0",
     "@fontsource/hachi-maru-pop": "^5.3.0",
     "@fontsource/kiwi-maru": "^5.3.1",
     "@fontsource/mochiy-pop-one": "^5.3.0",

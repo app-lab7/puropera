@@ -1,18 +1,16 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
-import '@fontsource/mochiy-pop-one/japanese-400.css'
-import '@fontsource/mochiy-pop-one/latin-400.css'
-import '@fontsource/hachi-maru-pop/japanese-400.css'
-import '@fontsource/hachi-maru-pop/latin-400.css'
-import '@fontsource/zen-maru-gothic/japanese-500.css'
-import '@fontsource/zen-maru-gothic/japanese-700.css'
-import '@fontsource/zen-maru-gothic/latin-500.css'
-import '@fontsource/zen-maru-gothic/latin-700.css'
-import '@fontsource/zen-kurenaido/japanese-400.css'
-import '@fontsource/zen-kurenaido/latin-400.css'
-import '@fontsource/kiwi-maru/japanese-500.css'
-import '@fontsource/kiwi-maru/latin-500.css'
+import '@fontsource/mochiy-pop-one/400.css'
+import '@fontsource/hachi-maru-pop/400.css'
+import '@fontsource/zen-maru-gothic/500.css'
+import '@fontsource/zen-maru-gothic/700.css'
+import '@fontsource/zen-kurenaido/400.css'
+import '@fontsource/kiwi-maru/500.css'
+import '@fontsource/fredoka/latin-500.css'
+import '@fontsource/fredoka/latin-600.css'
+import '@fontsource/dancing-script/latin-600.css'
+import '@fontsource/dancing-script/latin-700.css'
 import './App.css'
 
 type AvatarId = 'violet' | 'mint' | 'peach'
@@ -25,14 +23,21 @@ type FavoriteKey =
   | 'food' | 'drink' | 'animal' | 'color'
   | 'anime' | 'game' | 'music' | 'hobby'
 
-type FavoriteShape = 'heart' | 'round' | 'square' | 'bubble'
-type QuestionStyle = 'note' | 'sticky' | 'simple'
-type FreeFrame = 'round' | 'photo' | 'stitch'
+type FavoriteShape = 'scallop' | 'heart' | 'round' | 'square' | 'bubble'
+type SheetTheme = 'sky' | 'gingham' | 'grid' | 'minimal'
+type WhichKey = 'breakfast' | 'dessert' | 'snack' | 'study' | 'pet' | 'night'
+type WhichChoice = '' | 'a' | 'b'
 
 type FontStyle = 'standard' | 'pop' | 'maru' | 'soft' | 'hand' | 'kiwi'
 type DecorSet = 'none' | 'sweets' | 'sky' | 'cute' | 'animals'
 
-type AnswerKey = 'subject' | 'talent' | 'dream' | 'hamari' | 'word' | 'treasure' | 'from' | 'next'
+type AnswerKey =
+  | 'talent' | 'holiday'
+  | 'subject' | 'hamari' | 'treasure' | 'word' | 'dream'
+  | 'bestTitle' | 'best1' | 'best2' | 'best3'
+  | 'lottery' | 'wish'
+  | 'oshi' | 'oshiStory'
+  | 'from' | 'next'
 
 type BloodType = '' | 'A' | 'B' | 'O' | 'AB'
 
@@ -51,8 +56,8 @@ type Profile = {
   answers: Record<AnswerKey, string>
   freeSpace: string
   favoriteShape: FavoriteShape
-  questionStyle: QuestionStyle
-  freeFrame: FreeFrame
+  sheetTheme: SheetTheme
+  which: Record<WhichKey, WhichChoice>
   fontStyle: FontStyle
   decorSet: DecorSet
   avatar: AvatarId
@@ -89,23 +94,32 @@ const favoriteOptions: { id: FavoriteKey; label: string }[] = [
 ]
 
 const favoriteShapeOptions: { id: FavoriteShape; label: string }[] = [
+  { id: 'scallop', label: '☁ くもがた' },
   { id: 'heart', label: '♡ ハート' },
   { id: 'round', label: '○ まる' },
   { id: 'square', label: '□ ふせん' },
   { id: 'bubble', label: '💬 ふきだし' },
 ]
 
-const questionStyleOptions: { id: QuestionStyle; label: string }[] = [
-  { id: 'note', label: 'ノート' },
-  { id: 'sticky', label: 'ふせん' },
-  { id: 'simple', label: 'シンプル' },
+const sheetThemeOptions: { id: SheetTheme; label: string }[] = [
+  { id: 'sky', label: 'ゆめかわ' },
+  { id: 'gingham', label: 'ギンガム' },
+  { id: 'grid', label: '方眼バインダー' },
+  { id: 'minimal', label: 'ミニマル' },
 ]
 
-const freeFrameOptions: { id: FreeFrame; label: string }[] = [
-  { id: 'round', label: 'まる枠' },
-  { id: 'photo', label: 'ポラロイド' },
-  { id: 'stitch', label: 'ぬいめ' },
+const whichQuestions: { id: WhichKey; label: string; a: string; b: string }[] = [
+  { id: 'breakfast', label: '朝食は', a: 'パン派', b: 'ごはん派' },
+  { id: 'dessert', label: 'デザートは', a: 'アイス派', b: 'ケーキ派' },
+  { id: 'snack', label: 'おやつは', a: 'チョコ派', b: 'グミ派' },
+  { id: 'study', label: '勉強は', a: '算数派', b: '国語派' },
+  { id: 'pet', label: 'ペットは', a: '犬派', b: '猫派' },
+  { id: 'night', label: '生活は', a: '朝型', b: '夜型' },
 ]
+
+const emptyWhich: Record<WhichKey, WhichChoice> = {
+  breakfast: '', dessert: '', snack: '', study: '', pet: '', night: '',
+}
 
 const fontStyleOptions: { id: FontStyle; label: string; family: string }[] = [
   { id: 'standard', label: 'ふつう', family: 'inherit' },
@@ -139,26 +153,55 @@ function DecorIcon({ set, index, className }: { set: DecorSet; index: number; cl
   )
 }
 
+function scallopPath() {
+  const top = 'a10 10 0 0 1 20 0 '.repeat(4)
+  const right = 'a9 9 0 0 1 0 18 '.repeat(4)
+  const bottom = 'a10 10 0 0 1 -20 0 '.repeat(4)
+  const left = 'a9 9 0 0 1 0 -18 '.repeat(4)
+  return `M10 4 ${top}a6 6 0 0 1 6 6 ${right}a6 6 0 0 1 -6 6 ${bottom}a6 6 0 0 1 -6 -6 ${left}a6 6 0 0 1 6 -6Z`
+}
+
 const favoriteShapePaths: Record<FavoriteShape, string> = {
+  scallop: scallopPath(),
   heart: 'M50 88C20 64 4 48 4 28 4 14 15 4 28 4c9 0 17 5 22 13C55 9 63 4 72 4c13 0 24 10 24 24 0 20-16 36-46 60Z',
   round: 'M50 3a46 43 0 1 0 .01 0Z',
   square: 'M8 6h84a3 3 0 0 1 3 3v74a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3Z',
   bubble: 'M14 4h72a10 10 0 0 1 10 10v46a10 10 0 0 1-10 10H62L50 88 38 70H14A10 10 0 0 1 4 60V14A10 10 0 0 1 14 4Z',
 }
 
-const answerQuestions: { id: AnswerKey; label: string; placeholder: string }[] = [
-  { id: 'subject', label: 'すきな教科', placeholder: '例：体育、図工' },
-  { id: 'talent', label: 'とくぎ', placeholder: '例：はやくちことば' },
-  { id: 'dream', label: 'しょうらいのゆめ', placeholder: '例：パティシエ' },
-  { id: 'hamari', label: 'いまハマってること', placeholder: '例：ゲーム、お菓子づくり' },
-  { id: 'word', label: 'すきなことば', placeholder: '例：なんとかなる！' },
-  { id: 'treasure', label: 'たからもの', placeholder: '例：友だちからの手紙' },
-  { id: 'from', label: 'まわしてくれた人', placeholder: '例：ひなちゃん' },
-  { id: 'next', label: 'つぎにまわしたい人', placeholder: '例：みおちゃん' },
+const answerGroups: { id: string; title: string }[] = [
+  { id: 'basic', title: '✎ じこしょうかい（もっと）' },
+  { id: 'more', title: '☆ もっと知りたい' },
+  { id: 'best', title: '♛ My Best3' },
+  { id: 'if', title: '✧ もしも…' },
+  { id: 'oshi', title: '♡ 私の推し' },
+  { id: 'pass', title: '➜ プロフ帳をまわす' },
+]
+
+const answerQuestions: { id: AnswerKey; label: string; placeholder: string; group: string }[] = [
+  { id: 'talent', label: '得意なこと', placeholder: '例：はやくちことば', group: 'basic' },
+  { id: 'holiday', label: '休みの日によくすること', placeholder: '例：ゲーム、おひるね', group: 'basic' },
+  { id: 'subject', label: 'すきな教科', placeholder: '例：体育、図工', group: 'more' },
+  { id: 'hamari', label: 'いまハマってること', placeholder: '例：ゲーム、お菓子づくり', group: 'more' },
+  { id: 'treasure', label: 'たからもの', placeholder: '例：友だちからの手紙', group: 'more' },
+  { id: 'word', label: 'すきなことば', placeholder: '例：なんとかなる！', group: 'more' },
+  { id: 'dream', label: 'しょうらいのゆめ', placeholder: '例：パティシエ', group: 'more' },
+  { id: 'bestTitle', label: 'テーマ', placeholder: '例：好きなお菓子', group: 'best' },
+  { id: 'best1', label: '1位', placeholder: '', group: 'best' },
+  { id: 'best2', label: '2位', placeholder: '', group: 'best' },
+  { id: 'best3', label: '3位', placeholder: '', group: 'best' },
+  { id: 'lottery', label: 'もし宝くじが当たったら', placeholder: '例：世界一周する！', group: 'if' },
+  { id: 'wish', label: 'もし願いがひとつ叶うなら', placeholder: '例：空を飛びたい', group: 'if' },
+  { id: 'oshi', label: '私の推し', placeholder: '例：あの配信者さん', group: 'oshi' },
+  { id: 'oshiStory', label: '推しとの出会い', placeholder: '例：偶然ライブ配信を見て', group: 'oshi' },
+  { id: 'from', label: 'まわしてくれた人', placeholder: '例：ひなちゃん', group: 'pass' },
+  { id: 'next', label: 'つぎにまわしたい人', placeholder: '例：みおちゃん', group: 'pass' },
 ]
 
 const emptyAnswers: Record<AnswerKey, string> = {
-  subject: '', talent: '', dream: '', hamari: '', word: '', treasure: '', from: '', next: '',
+  talent: '', holiday: '', subject: '', hamari: '', treasure: '', word: '', dream: '',
+  bestTitle: '', best1: '', best2: '', best3: '', lottery: '', wish: '',
+  oshi: '', oshiStory: '', from: '', next: '',
 }
 
 const bloodTypeOptions: BloodType[] = ['A', 'B', 'O', 'AB']
@@ -207,9 +250,9 @@ const initialProfile: Profile = {
   favorites: { ...emptyFavorites, drink: 'クリームソーダ', game: 'リズムゲーム', music: 'ゲーム音楽' },
   answers: { ...emptyAnswers },
   freeSpace: '',
-  favoriteShape: 'heart',
-  questionStyle: 'note',
-  freeFrame: 'round',
+  favoriteShape: 'scallop',
+  sheetTheme: 'sky',
+  which: { ...emptyWhich },
   fontStyle: 'maru',
   decorSet: 'cute',
   avatar: 'violet',
@@ -285,20 +328,29 @@ const publicProfile: Profile = {
   },
   answers: {
     ...emptyAnswers,
-    subject: '図工と音楽',
     talent: 'ものまね',
-    dream: 'ゲームをつくる人',
+    holiday: 'ゲームとおひるね',
+    subject: '図工と音楽',
     hamari: 'リズムゲーム',
-    word: 'なんとかなる！',
     treasure: '友だちとのプリクラ',
+    word: 'なんとかなる！',
+    dream: 'ゲームをつくる人',
+    bestTitle: '好きなお菓子',
+    best1: 'いちごパフェ',
+    best2: 'マカロン',
+    best3: 'クリームソーダ味のグミ',
+    lottery: '世界一周する！',
+    wish: '空を飛びたい',
+    oshi: 'ゲーム配信のあの子',
+    oshiStory: '偶然ライブ配信を見て',
     from: 'ひなちゃん',
     next: 'みおちゃん',
   },
   freeSpace: 'ゲーム配信とイラストをゆるっと更新中！遊びにきてね✦',
-  favoriteShape: 'heart',
-  questionStyle: 'note',
-  freeFrame: 'round',
-  fontStyle: 'pop',
+  favoriteShape: 'scallop',
+  sheetTheme: 'sky',
+  which: { breakfast: 'a', dessert: 'b', snack: 'a', study: 'b', pet: 'b', night: 'b' },
+  fontStyle: 'maru',
   decorSet: 'sky',
   avatar: 'violet',
   bookColor: 'violet',
@@ -578,249 +630,189 @@ function ShareProfileCard({ shareUrl }: { shareUrl: string }) {
   )
 }
 
-function Blank({ value }: { value: string }) {
-  return <span className={`blank${value ? '' : ' blank--empty'}`}>{value || '　　'}</span>
+function Pill({ value, wide = false }: { value: string; wide?: boolean }) {
+  return <span className={`sh-pill${wide ? ' sh-pill--wide' : ''}`}>{value}</span>
 }
 
-function QuestionLines({ profile }: { profile: Profile }) {
+function ProfileSheet({ profile, isPublic = false }: { profile: Profile; isPublic?: boolean }) {
+  const a = profile.answers
   const zodiac = zodiacOf(profile.birthMonth, profile.birthDay)
   const hasBirthday = Boolean(profile.birthMonth || profile.birthDay)
-  if (!(profile.nickname || hasBirthday || profile.bloodType || profile.personality)) return null
+  const favorites = favoriteOptions.filter((option) => profile.favorites[option.id])
+  const hasWhich = whichQuestions.some((question) => profile.which[question.id])
+  const hasBest = Boolean(a.best1 || a.best2 || a.best3)
+  const moreLines: { label: string; value: string; tail: string }[] = [
+    { label: 'すきな教科は', value: a.subject, tail: 'だよ！' },
+    { label: 'いまハマってるのは', value: a.hamari, tail: 'だよ♪' },
+    { label: 'たからものは', value: a.treasure, tail: 'だよ♡' },
+    { label: 'すきなことばは', value: a.word, tail: 'だよ☆' },
+  ].filter((line) => line.value)
 
   return (
-    <div className={`fill-lines fill-lines--${profile.questionStyle}`}>
-      <h2 className="deco-title">
-        <DecorIcon set={profile.decorSet} index={2} className="decor-icon--title" />
-        じこしょうかい
-        <DecorIcon set={profile.decorSet} index={3} className="decor-icon--title" />
-      </h2>
-      {profile.nickname && (
-        <p><i aria-hidden="true">♡</i>みんなには<Blank value={profile.nickname} />ってよばれてるよ</p>
-      )}
-      {hasBirthday && (
-        <p>
-          <i aria-hidden="true">☾</i>たんじょう日は<Blank value={profile.birthMonth} />月
-          <Blank value={profile.birthDay} />日{zodiac && <>（{zodiac}座）</>}
-        </p>
-      )}
-      {profile.bloodType && (
-        <p><i aria-hidden="true">✚</i>血液型は<Blank value={profile.bloodType} />型</p>
-      )}
-      {profile.personality && (
-        <p><i aria-hidden="true">☆</i>よく<Blank value={profile.personality} />って言われるよ</p>
-      )}
-    </div>
-  )
-}
+    <article className={`sheet sheet--${profile.sheetTheme} ${bookStyleClasses(profile)}${isPublic ? ' public-book' : ''}`}>
+      <div className="sheet-band" aria-hidden="true" />
+      <header className="sheet-head">
+        <h2 className="sheet-script">my profile</h2>
+        <DecorIcon set={profile.decorSet} index={2} className="decor-icon--head" />
+      </header>
 
-function FavoriteHearts({ profile }: { profile: Profile }) {
-  const filledFavorites = favoriteOptions.filter((option) => profile.favorites[option.id])
-  if (filledFavorites.length === 0) return null
+      <section className="sheet-intro">
+        <figure className="sh-polaroid">
+          <span className="sh-tape" aria-hidden="true" />
+          <Avatar
+            avatar={profile.avatar}
+            imageSrc={profile.customAvatar}
+            label={isPublic ? `${profile.displayName}の仮アイコン` : `${profile.displayName}のアイコン`}
+          />
+          <figcaption>{profile.accountId}</figcaption>
+        </figure>
+        <div className="sh-lines">
+          <p>ぼく・わたしのなまえは<Pill value={profile.displayName} wide />です。</p>
+          {profile.nickname && <p>みんなからは<Pill value={profile.nickname} />ってよばれてるよ！</p>}
+          {hasBirthday && (
+            <p>
+              誕生日は<Pill value={profile.birthMonth || '　'} />月<Pill value={profile.birthDay || '　'} />日生まれ
+              {zodiac && <>の<Pill value={zodiac} />座</>}
+            </p>
+          )}
+          {profile.bloodType && <p>血液型は<Pill value={profile.bloodType} />型★</p>}
+          {a.talent && <p>得意なことは<Pill value={a.talent} wide />だよ！</p>}
+          {profile.personality && <p>性格はよく<Pill value={profile.personality} wide />って言われるよ！</p>}
+          {a.holiday && <p>休みの日は<Pill value={a.holiday} wide />をしていることが多いよ！</p>}
+          {profile.activity && <p>活動内容は<Pill value={profile.activity} wide />だよ♪</p>}
+          {profile.likes && <p>すきなものは<Pill value={profile.likes} wide />だよ♡</p>}
+        </div>
+      </section>
 
-  return (
-    <div className="favorite-section">
-      <h2 className="deco-title deco-title--ribbon">
-        <DecorIcon set={profile.decorSet} index={0} className="decor-icon--ribbon decor-icon--left" />
-        MY FAVORITE
-        <DecorIcon set={profile.decorSet} index={1} className="decor-icon--ribbon decor-icon--right" />
-      </h2>
-      <ul className={`favorite-grid favorite-grid--${profile.favoriteShape}`}>
-        {filledFavorites.map((option) => (
-          <li key={option.id}>
-            <svg viewBox="0 0 100 92" aria-hidden="true" preserveAspectRatio="none">
-              <path d={favoriteShapePaths[profile.favoriteShape]} />
-            </svg>
-            <span className="favorite-label">★ {option.label} ★</span>
-            <strong>{profile.favorites[option.id]}</strong>
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-function ExtraAnswers({ profile }: { profile: Profile }) {
-  const filled = answerQuestions.filter(
-    (question) => profile.answers[question.id] && question.id !== 'from' && question.id !== 'next',
-  )
-  const { from, next } = profile.answers
-  if (filled.length === 0 && !from && !next) return null
-
-  return (
-    <div className="extra-answers">
-      {filled.length > 0 && (
-        <ul className="qa-list">
-          {filled.map((question) => (
-            <li key={question.id} className="qa-row">
-              <span className="qa-label">{question.label}</span>
-              <span className="qa-answer">{profile.answers[question.id]}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-      {(from || next) && (
-        <div className="pass-around">
-          <small>♡ プロフ帳のまわし先 ♡</small>
-          <div className="pass-chain">
-            <span className="pass-name">{from || '？？？'}</span>
-            <i aria-hidden="true">➜</i>
-            <span className="pass-name pass-name--me">♡わたし♡</span>
-            <i aria-hidden="true">➜</i>
-            <span className="pass-name">{next || '？？？'}</span>
+      {favorites.length > 0 && (
+        <section className="sh-section">
+          <div className="sh-section-title">
+            <small>すきなもの</small>
+            <h3 className="sheet-script">my favorite</h3>
+            <DecorIcon set={profile.decorSet} index={0} className="decor-icon--fav" />
           </div>
-        </div>
+          <ul className={`sh-fav sh-fav--${profile.favoriteShape}`}>
+            {favorites.map((option) => (
+              <li key={option.id}>
+                <svg viewBox="0 0 100 92" aria-hidden="true" preserveAspectRatio="none">
+                  <path d={favoriteShapePaths[profile.favoriteShape]} />
+                </svg>
+                <span className="sh-fav-label">{option.label}</span>
+                <strong>{profile.favorites[option.id]}</strong>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
-    </div>
-  )
-}
 
-function FreeSpaceBox({ profile }: { profile: Profile }) {
-  if (!profile.freeSpace) return null
-  return (
-    <div className={`free-space free-space--${profile.freeFrame}`}>
-      <div className="free-space-inner">
-        <h2>✧ FREE SPACE ✧</h2>
-        <p>{profile.freeSpace}</p>
-      </div>
-      <DecorIcon set={profile.decorSet} index={0} className="decor-icon--corner" />
-    </div>
-  )
-}
+      {hasWhich && (
+        <section className="sh-card sh-card--which">
+          <DecorIcon set={profile.decorSet} index={1} className="decor-icon--card-a" />
+          <DecorIcon set={profile.decorSet} index={3} className="decor-icon--card-b" />
+          <h3><small>どっちが好き？</small><span className="sheet-script">which one?</span></h3>
+          <ul className="sh-which">
+            {whichQuestions.map((question) => (
+              <li key={question.id}>
+                <span className="sh-which-q">{question.label}</span>
+                {(['a', 'b'] as const).map((side) => (
+                  <span key={side} className={`sh-choice${profile.which[question.id] === side ? ' picked' : ''}`}>
+                    {question[side]}
+                  </span>
+                ))}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
-function ProfileDetails({ profile }: { profile: Profile }) {
-  return (
-    <>
-      <QuestionLines profile={profile} />
-      <FavoriteHearts profile={profile} />
-      <ExtraAnswers profile={profile} />
-      <FreeSpaceBox profile={profile} />
-    </>
-  )
-}
+      {hasBest && (
+        <section className="sh-card sh-card--best">
+          <h3><span className="sheet-script">My Best3</span></h3>
+          {a.bestTitle && <p className="sh-best-title"><Pill value={a.bestTitle} wide /></p>}
+          <ol className="sh-best">
+            {[a.best1, a.best2, a.best3].map((value, index) => (
+              <li key={index}>
+                <b className={`sh-rank sh-rank--${index + 1}`}>{index + 1}</b>
+                <span className="sh-best-value">{value}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
 
-const pageMeta = [
-  { eyebrow: 'PROFILE', title: 'ぷろふぃーる' },
-  { eyebrow: 'FAVORITE', title: 'すきなものだらけ' },
-  { eyebrow: 'TALK', title: 'もっと知りたい' },
-]
+      {moreLines.length > 0 && (
+        <section className="sh-card">
+          <h3><small>もっと知りたい</small></h3>
+          <div className="sh-lines">
+            {moreLines.map((line) => (
+              <p key={line.label}>{line.label}<Pill value={line.value} wide />{line.tail}</p>
+            ))}
+          </div>
+        </section>
+      )}
 
-function ProfileBook({ profile, isPublic = false }: { profile: Profile; isPublic?: boolean }) {
-  const [page, setPage] = useState(0)
-  const [direction, setDirection] = useState<'next' | 'prev'>('next')
-  const [hasFlipped, setHasFlipped] = useState(false)
-  const touchStartX = useRef<number | null>(null)
-  const lastPage = pageMeta.length - 1
-
-  const goTo = (target: number) => {
-    if (target < 0 || target > lastPage || target === page) return
-    setDirection(target > page ? 'next' : 'prev')
-    setPage(target)
-    setHasFlipped(true)
-  }
-
-  const handleTouchEnd = (clientX: number) => {
-    if (touchStartX.current === null) return
-    const diff = clientX - touchStartX.current
-    touchStartX.current = null
-    if (Math.abs(diff) < 50) return
-    goTo(diff < 0 ? page + 1 : page - 1)
-  }
-
-  return (
-    <article
-      className={`open-book heisei-book ${bookStyleClasses(profile)}${isPublic ? ' public-book' : ''}`}
-      onTouchStart={(event) => { touchStartX.current = event.touches[0].clientX }}
-      onTouchEnd={(event) => handleTouchEnd(event.changedTouches[0].clientX)}
-    >
-      <div className="book-spine" aria-hidden="true" />
-      <span className="washi washi--a" aria-hidden="true" />
-      <span className="washi washi--b" aria-hidden="true" />
-
-      <div key={page} className={`book-page book-page--${direction}`}>
-        <header className="page-banner">
-          <small>{pageMeta[page].eyebrow}</small>
-          <h2>{pageMeta[page].title}<span aria-hidden="true">♡</span></h2>
-        </header>
-
-        {page === 0 && (
-          <>
-            <div className="book-decor" aria-hidden="true">
-              <DecorIcon set={profile.decorSet} index={1} className="decor-icon--float-a" />
-              <DecorIcon set={profile.decorSet} index={2} className="decor-icon--float-b" />
+      {(a.lottery || a.wish) && (
+        <section className="sh-card sh-card--if">
+          <h3><span className="sheet-script">If...</span></h3>
+          {a.lottery && (
+            <div className="sh-if">
+              <small>もし、宝くじが当たったら？</small>
+              <p>{a.lottery}</p>
             </div>
-            <div className="profile-top">
-              <div className="profile-photo">
-                <Avatar
-                  avatar={profile.avatar}
-                  imageSrc={profile.customAvatar}
-                  label={isPublic ? `${profile.displayName}の仮アイコン` : `${profile.displayName}のアイコン`}
-                />
-                <span className="photo-tape" aria-hidden="true" />
-                <span className="puri-label" aria-hidden="true">♡ ぷりくら ♡</span>
-              </div>
-              <div className="name-block">
-                <span>なまえ</span>
-                <strong>{profile.displayName}</strong>
-                <em>{profile.accountId}</em>
-              </div>
+          )}
+          {a.wish && (
+            <div className="sh-if">
+              <small>もし、願い事がひとつ叶うなら？</small>
+              <p>{a.wish}</p>
             </div>
-            <QuestionLines profile={profile} />
-            <ul className="qa-list">
-              <li className="qa-row">
-                <span className="qa-label">♡ すきなもの</span>
-                <span className="qa-answer">{profile.likes}</span>
-              </li>
-              <li className="qa-row">
-                <span className="qa-label">☆ 活動内容</span>
-                <span className="qa-answer">{profile.activity}</span>
-              </li>
-              <li className="qa-row">
-                <span className="qa-label">✎ ひとこと</span>
-                <span className="qa-answer">{profile.message}</span>
-              </li>
-            </ul>
-          </>
-        )}
+          )}
+        </section>
+      )}
 
-        {page === 1 && (
-          <FavoriteHearts profile={profile} />
-        )}
+      {(a.oshi || a.oshiStory) && (
+        <section className="sh-card sh-card--oshi">
+          <h3><small>私の推し</small></h3>
+          <div className="sh-lines">
+            {a.oshi && <p>私の推しは<Pill value={a.oshi} wide />が好き♡</p>}
+            {a.oshiStory && <p>推しとの出会いは<Pill value={a.oshiStory} wide />だよ！</p>}
+          </div>
+        </section>
+      )}
 
-        {page === 2 && (
-          <>
-            <ExtraAnswers profile={profile} />
-            <FreeSpaceBox profile={profile} />
-          </>
-        )}
-      </div>
+      {a.dream && (
+        <section className="sh-card">
+          <h3><small>将来のゆめ</small></h3>
+          <p className="sh-text">{a.dream}</p>
+        </section>
+      )}
 
-      <nav className="page-nav" aria-label="ページをめくる">
-        <button type="button" onClick={() => goTo(page - 1)} disabled={page === 0} aria-label="まえのページ">‹</button>
-        <div className="page-dots">
-          {pageMeta.map((meta, index) => (
-            <button
-              key={meta.eyebrow}
-              type="button"
-              className={index === page ? 'selected' : ''}
-              onClick={() => goTo(index)}
-              aria-label={`${index + 1}ページ目`}
-              aria-current={index === page}
-            >
-              ♥
-            </button>
-          ))}
-        </div>
-        <button
-          type="button"
-          className={!hasFlipped ? 'nudge' : ''}
-          onClick={() => goTo(page + 1)}
-          disabled={page === lastPage}
-          aria-label="つぎのページ"
-        >
-          ›
-        </button>
-      </nav>
-      <span className="page-number" aria-hidden="true">p.{page + 1}</span>
+      <section className="sh-card sh-card--message">
+        <h3><small>ひとことメッセージ</small></h3>
+        <p className="sh-text">{profile.message}</p>
+      </section>
+
+      {profile.freeSpace && (
+        <section className="sh-card sh-card--free">
+          <h3><span className="sheet-script">Free Space</span></h3>
+          <p className="sh-text">{profile.freeSpace}</p>
+          <DecorIcon set={profile.decorSet} index={0} className="decor-icon--corner" />
+        </section>
+      )}
+
+      {(a.from || a.next) && (
+        <section className="sh-pass">
+          <small>♡ プロフ帳のまわし先 ♡</small>
+          <div className="sh-pass-chain">
+            <span>{a.from || '？？？'}</span>
+            <i aria-hidden="true">➜</i>
+            <span className="me">♡わたし♡</span>
+            <i aria-hidden="true">➜</i>
+            <span>{a.next || '？？？'}</span>
+          </div>
+        </section>
+      )}
+
+      <p className="sh-foot">✿ ぷろぺた ✿</p>
     </article>
   )
 }
@@ -836,7 +828,7 @@ function ProfilePage({ profile }: { profile: Profile }) {
         <Link className="mini-action" to="/profile/edit">✎ 編集</Link>
       </div>
 
-      <ProfileBook profile={profile} />
+      <ProfileSheet profile={profile} />
 
       <div className="profile-actions">
         <Link className="primary-button" to="/stickers">
@@ -871,6 +863,10 @@ function EditProfilePage({
 
   const updateFavorite = (key: FavoriteKey, value: string) => {
     setDraft((current) => ({ ...current, favorites: { ...current.favorites, [key]: value } }))
+  }
+
+  const updateWhich = (key: WhichKey, value: WhichChoice) => {
+    setDraft((current) => ({ ...current, which: { ...current.which, [key]: value } }))
   }
 
   const updateAnswer = (key: AnswerKey, value: string) => {
@@ -1173,45 +1169,79 @@ function EditProfilePage({
           />
         </label>
 
-        <fieldset className="detail-fields">
-          <legend>✎ もっと書く（平成プロフ帳）</legend>
-          {answerQuestions.map((question) => (
-            <label key={question.id} className="form-field">
-              <span>{question.label}</span>
-              <input
-                maxLength={20}
-                placeholder={question.placeholder}
-                value={draft.answers[question.id]}
-                onChange={(event) => updateAnswer(question.id, event.target.value)}
-              />
-            </label>
-          ))}
-        </fieldset>
+        {answerGroups.map((group) => (
+          <fieldset key={group.id} className="detail-fields">
+            <legend>{group.title}</legend>
+            {answerQuestions.filter((question) => question.group === group.id).map((question) => (
+              <label key={question.id} className="form-field">
+                <span>{question.label}</span>
+                <input
+                  maxLength={24}
+                  placeholder={question.placeholder}
+                  value={draft.answers[question.id]}
+                  onChange={(event) => updateAnswer(question.id, event.target.value)}
+                />
+              </label>
+            ))}
+          </fieldset>
+        ))}
 
-        <fieldset className="detail-fields detail-style">
-          <legend>✦ デザインをえらぶ</legend>
-          {([
-            ['favoriteShape', 'お気に入りのカード', favoriteShapeOptions],
-            ['questionStyle', 'ひみつのしつもん', questionStyleOptions],
-            ['freeFrame', 'フリースペースの枠', freeFrameOptions],
-          ] as const).map(([field, title, options]) => (
-            <div key={field} className="form-field form-field--row">
-              <span>{title}</span>
+        <fieldset className="detail-fields">
+          <legend>♡ どっちが好き？（タップでえらぶ）</legend>
+          {whichQuestions.map((question) => (
+            <div key={question.id} className="form-field form-field--row">
+              <span>{question.label}</span>
               <div className="chip-options chip-options--wrap">
-                {options.map((option) => (
+                {(['a', 'b'] as const).map((side) => (
                   <button
-                    key={option.id}
+                    key={side}
                     type="button"
-                    className={draft[field] === option.id ? 'selected' : ''}
-                    aria-pressed={draft[field] === option.id}
-                    onClick={() => setDraft((current) => ({ ...current, [field]: option.id }))}
+                    className={draft.which[question.id] === side ? 'selected' : ''}
+                    aria-pressed={draft.which[question.id] === side}
+                    onClick={() => updateWhich(question.id, draft.which[question.id] === side ? '' : side)}
                   >
-                    {option.label}
+                    {question[side]}
                   </button>
                 ))}
               </div>
             </div>
           ))}
+        </fieldset>
+
+        <fieldset className="detail-fields detail-style">
+          <legend>✦ デザインをえらぶ</legend>
+          <div className="form-field form-field--row">
+            <span>シートの種類</span>
+            <div className="chip-options chip-options--wrap">
+              {sheetThemeOptions.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  className={draft.sheetTheme === option.id ? 'selected' : ''}
+                  aria-pressed={draft.sheetTheme === option.id}
+                  onClick={() => updateField('sheetTheme', option.id)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="form-field form-field--row">
+            <span>お気に入りのカード</span>
+            <div className="chip-options chip-options--wrap">
+              {favoriteShapeOptions.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  className={draft.favoriteShape === option.id ? 'selected' : ''}
+                  aria-pressed={draft.favoriteShape === option.id}
+                  onClick={() => updateField('favoriteShape', option.id)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="form-field form-field--row">
             <span>もじ（フォント）</span>
             <div className="chip-options chip-options--wrap">
@@ -1245,16 +1275,18 @@ function EditProfilePage({
               ))}
             </div>
           </div>
-          <div className={`details-preview ${bookStyleClasses(draft)}`}>
-            <small>プレビュー</small>
-            <ProfileDetails
+          <p className="form-note">色は上の「プロフィール帳をデザイン」のカラーで変えられるよ</p>
+          <div className="details-preview">
+            <small>プレビュー（見本の内容で表示しています）</small>
+            <ProfileSheet
+              isPublic
               profile={{
                 ...publicProfile,
+                sheetTheme: draft.sheetTheme,
                 favoriteShape: draft.favoriteShape,
-                questionStyle: draft.questionStyle,
-                freeFrame: draft.freeFrame,
                 fontStyle: draft.fontStyle,
                 decorSet: draft.decorSet,
+                bookColor: draft.bookColor,
               }}
             />
           </div>
@@ -1490,7 +1522,7 @@ function PublicProfilePage({ hasReceived }: { hasReceived: boolean }) {
         <span className="page-number">♡</span>
       </div>
 
-      <ProfileBook profile={publicProfile} isPublic />
+      <ProfileSheet profile={publicProfile} isPublic />
 
       <section className="public-sticker-offer">
         <div>
@@ -1629,6 +1661,7 @@ function loadProfile(): Profile {
       ...saved,
       favorites: { ...emptyFavorites, ...saved.favorites },
       answers: { ...emptyAnswers, ...saved.answers },
+      which: { ...emptyWhich, ...saved.which },
     }
   } catch {
     return initialProfile
