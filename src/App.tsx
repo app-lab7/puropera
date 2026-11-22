@@ -22,21 +22,25 @@ type BookPattern = 'check' | 'stars' | 'plain' | 'dots' | 'stripe' | 'grid'
 type FavoriteKey =
   | 'food' | 'drink' | 'animal' | 'color'
   | 'anime' | 'game' | 'music' | 'hobby'
+  | 'snack' | 'season' | 'place' | 'item'
 
 type FavoriteShape = 'scallop' | 'heart' | 'round' | 'square' | 'bubble'
 type SheetTheme = 'sky' | 'gingham' | 'grid' | 'minimal'
-type WhichKey = 'breakfast' | 'dessert' | 'snack' | 'study' | 'pet' | 'night'
+type WhichKey =
+  | 'breakfast' | 'dessert' | 'snack' | 'study' | 'pet' | 'night'
+  | 'season' | 'taste' | 'outing' | 'noodle' | 'kinoko' | 'time'
 type WhichChoice = '' | 'a' | 'b'
 
 type FontStyle = 'standard' | 'pop' | 'maru' | 'soft' | 'hand' | 'kiwi'
 type DecorSet = 'none' | 'sweets' | 'sky' | 'cute' | 'animals'
 
 type AnswerKey =
-  | 'talent' | 'holiday'
+  | 'talent' | 'holiday' | 'charm' | 'habit' | 'morning'
   | 'subject' | 'hamari' | 'treasure' | 'word' | 'dream'
+  | 'happy' | 'weak' | 'wantItem' | 'wantGo' | 'friendType' | 'friendMsg'
   | 'bestTitle' | 'best1' | 'best2' | 'best3'
-  | 'lottery' | 'wish'
-  | 'oshi' | 'oshiStory'
+  | 'lottery' | 'wish' | 'invisible' | 'island'
+  | 'oshi' | 'oshiStory' | 'oshiPoint' | 'oshiMsg'
   | 'from' | 'next'
 
 type BloodType = '' | 'A' | 'B' | 'O' | 'AB'
@@ -91,6 +95,10 @@ const favoriteOptions: { id: FavoriteKey; label: string }[] = [
   { id: 'game', label: 'ゲーム' },
   { id: 'music', label: '音楽' },
   { id: 'hobby', label: 'しゅみ' },
+  { id: 'snack', label: 'お菓子' },
+  { id: 'season', label: '季節' },
+  { id: 'place', label: '場所' },
+  { id: 'item', label: 'もちもの' },
 ]
 
 const favoriteShapeOptions: { id: FavoriteShape; label: string }[] = [
@@ -115,10 +123,17 @@ const whichQuestions: { id: WhichKey; label: string; a: string; b: string }[] = 
   { id: 'study', label: '勉強は', a: '算数派', b: '国語派' },
   { id: 'pet', label: 'ペットは', a: '犬派', b: '猫派' },
   { id: 'night', label: '生活は', a: '朝型', b: '夜型' },
+  { id: 'season', label: '季節は', a: '夏派', b: '冬派' },
+  { id: 'taste', label: '味は', a: '甘党', b: '辛党' },
+  { id: 'outing', label: '休日は', a: 'インドア', b: 'アウトドア' },
+  { id: 'noodle', label: '麺は', a: 'うどん派', b: 'そば派' },
+  { id: 'kinoko', label: 'お菓子は', a: 'きのこ派', b: 'たけのこ派' },
+  { id: 'time', label: '行くなら', a: '過去', b: '未来' },
 ]
 
 const emptyWhich: Record<WhichKey, WhichChoice> = {
   breakfast: '', dessert: '', snack: '', study: '', pet: '', night: '',
+  season: '', taste: '', outing: '', noodle: '', kinoko: '', time: '',
 }
 
 const fontStyleOptions: { id: FontStyle; label: string; family: string }[] = [
@@ -181,27 +196,42 @@ const answerGroups: { id: string; title: string }[] = [
 const answerQuestions: { id: AnswerKey; label: string; placeholder: string; group: string }[] = [
   { id: 'talent', label: '得意なこと', placeholder: '例：はやくちことば', group: 'basic' },
   { id: 'holiday', label: '休みの日によくすること', placeholder: '例：ゲーム、おひるね', group: 'basic' },
+  { id: 'charm', label: 'チャームポイント', placeholder: '例：笑った顔', group: 'basic' },
+  { id: 'habit', label: 'ついやっちゃうくせ', placeholder: '例：髪をいじる', group: 'basic' },
+  { id: 'morning', label: '朝おきて最初にすること', placeholder: '例：スマホをみる', group: 'basic' },
   { id: 'subject', label: 'すきな教科', placeholder: '例：体育、図工', group: 'more' },
   { id: 'hamari', label: 'いまハマってること', placeholder: '例：ゲーム、お菓子づくり', group: 'more' },
   { id: 'treasure', label: 'たからもの', placeholder: '例：友だちからの手紙', group: 'more' },
   { id: 'word', label: 'すきなことば', placeholder: '例：なんとかなる！', group: 'more' },
   { id: 'dream', label: 'しょうらいのゆめ', placeholder: '例：パティシエ', group: 'more' },
+  { id: 'happy', label: 'うれしいと感じるとき', placeholder: '例：ほめられたとき', group: 'more' },
+  { id: 'weak', label: '苦手なもの', placeholder: '例：おばけ、ピーマン', group: 'more' },
+  { id: 'wantItem', label: 'いま欲しいもの', placeholder: '例：新しいイヤホン', group: 'more' },
+  { id: 'wantGo', label: '行ってみたい場所', placeholder: '例：北海道、ディズニー', group: 'more' },
+  { id: 'friendType', label: 'どんな友だちがすき？', placeholder: '例：笑いのツボが合う子', group: 'more' },
+  { id: 'friendMsg', label: 'このプロフを見た人へ', placeholder: '例：仲良くしてね！', group: 'more' },
   { id: 'bestTitle', label: 'テーマ', placeholder: '例：好きなお菓子', group: 'best' },
   { id: 'best1', label: '1位', placeholder: '', group: 'best' },
   { id: 'best2', label: '2位', placeholder: '', group: 'best' },
   { id: 'best3', label: '3位', placeholder: '', group: 'best' },
   { id: 'lottery', label: 'もし宝くじが当たったら', placeholder: '例：世界一周する！', group: 'if' },
   { id: 'wish', label: 'もし願いがひとつ叶うなら', placeholder: '例：空を飛びたい', group: 'if' },
+  { id: 'invisible', label: 'もし透明人間になれたら', placeholder: '例：好きな人のそばにいく', group: 'if' },
+  { id: 'island', label: '無人島にひとつ持っていくなら', placeholder: '例：ギター', group: 'if' },
   { id: 'oshi', label: '私の推し', placeholder: '例：あの配信者さん', group: 'oshi' },
   { id: 'oshiStory', label: '推しとの出会い', placeholder: '例：偶然ライブ配信を見て', group: 'oshi' },
+  { id: 'oshiPoint', label: '推しのすきなところ', placeholder: '例：声と笑い方', group: 'oshi' },
+  { id: 'oshiMsg', label: '推しに伝えたいこと', placeholder: '例：いつもありがとう！', group: 'oshi' },
   { id: 'from', label: 'まわしてくれた人', placeholder: '例：ひなちゃん', group: 'pass' },
   { id: 'next', label: 'つぎにまわしたい人', placeholder: '例：みおちゃん', group: 'pass' },
 ]
 
 const emptyAnswers: Record<AnswerKey, string> = {
-  talent: '', holiday: '', subject: '', hamari: '', treasure: '', word: '', dream: '',
+  talent: '', holiday: '', charm: '', habit: '', morning: '',
+  subject: '', hamari: '', treasure: '', word: '', dream: '',
+  happy: '', weak: '', wantItem: '', wantGo: '', friendType: '', friendMsg: '',
   bestTitle: '', best1: '', best2: '', best3: '', lottery: '', wish: '',
-  oshi: '', oshiStory: '', from: '', next: '',
+  invisible: '', island: '', oshi: '', oshiStory: '', oshiPoint: '', oshiMsg: '', from: '', next: '',
 }
 
 const bloodTypeOptions: BloodType[] = ['A', 'B', 'O', 'AB']
@@ -209,6 +239,7 @@ const bloodTypeOptions: BloodType[] = ['A', 'B', 'O', 'AB']
 const emptyFavorites: Record<FavoriteKey, string> = {
   food: '', drink: '', animal: '', color: '',
   anime: '', game: '', music: '', hobby: '',
+  snack: '', season: '', place: '', item: '',
 }
 
 const zodiacBorders: { month: number; day: number; name: string }[] = [
@@ -325,31 +356,51 @@ const publicProfile: Profile = {
     game: 'リズムゲーム',
     music: 'ゲーム音楽',
     hobby: 'イラスト・星空さんぽ',
+    snack: 'いちごグミ',
+    season: '夏',
+    place: '夜の海',
+    item: 'おそろいのキーホルダー',
   },
   answers: {
     ...emptyAnswers,
     talent: 'ものまね',
     holiday: 'ゲームとおひるね',
+    charm: '笑ったときのえくぼ',
+    habit: '髪をくるくるいじる',
+    morning: 'スマホで推しの投稿をみる',
     subject: '図工と音楽',
     hamari: 'リズムゲーム',
     treasure: '友だちとのプリクラ',
     word: 'なんとかなる！',
     dream: 'ゲームをつくる人',
+    happy: 'ほめてもらえたとき',
+    weak: 'おばけとピーマン',
+    wantItem: '新しいイヤホン',
+    wantGo: '北海道の雪まつり',
+    friendType: '笑いのツボが合う子',
+    friendMsg: '仲良くしてね！',
     bestTitle: '好きなお菓子',
     best1: 'いちごパフェ',
     best2: 'マカロン',
     best3: 'クリームソーダ味のグミ',
     lottery: '世界一周する！',
     wish: '空を飛びたい',
+    invisible: '好きな配信をこっそり見にいく',
+    island: 'ギター',
     oshi: 'ゲーム配信のあの子',
     oshiStory: '偶然ライブ配信を見て',
+    oshiPoint: '声と笑い方',
+    oshiMsg: 'いつも元気をありがとう！',
     from: 'ひなちゃん',
     next: 'みおちゃん',
   },
   freeSpace: 'ゲーム配信とイラストをゆるっと更新中！遊びにきてね✦',
   favoriteShape: 'scallop',
   sheetTheme: 'sky',
-  which: { breakfast: 'a', dessert: 'b', snack: 'a', study: 'b', pet: 'b', night: 'b' },
+  which: {
+    breakfast: 'a', dessert: 'b', snack: 'a', study: 'b', pet: 'b', night: 'b',
+    season: 'a', taste: 'a', outing: 'a', noodle: 'b', kinoko: 'b', time: 'b',
+  },
   fontStyle: 'maru',
   decorSet: 'sky',
   avatar: 'violet',
@@ -646,7 +697,19 @@ function ProfileSheet({ profile, isPublic = false }: { profile: Profile; isPubli
     { label: 'いまハマってるのは', value: a.hamari, tail: 'だよ♪' },
     { label: 'たからものは', value: a.treasure, tail: 'だよ♡' },
     { label: 'すきなことばは', value: a.word, tail: 'だよ☆' },
+    { label: 'うれしいと感じるのは', value: a.happy, tail: 'とき♪' },
+    { label: '苦手なものは', value: a.weak, tail: 'だよ…' },
+    { label: 'いま欲しいものは', value: a.wantItem, tail: 'だよ！' },
+    { label: '行ってみたい場所は', value: a.wantGo, tail: 'だよ✈' },
+    { label: '友だちにするなら', value: a.friendType, tail: 'な子がいいな♡' },
+    { label: 'このプロフを見た人へ', value: a.friendMsg, tail: '♡' },
   ].filter((line) => line.value)
+  const ifItems = [
+    { q: 'もし、宝くじが当たったら？', v: a.lottery },
+    { q: 'もし、願い事がひとつ叶うなら？', v: a.wish },
+    { q: 'もし、透明人間になれたら？', v: a.invisible },
+    { q: '無人島にひとつ持っていくなら？', v: a.island },
+  ].filter((item) => item.v)
 
   return (
     <article className={`sheet sheet--${profile.sheetTheme} ${bookStyleClasses(profile)}${isPublic ? ' public-book' : ''}`}>
@@ -679,6 +742,9 @@ function ProfileSheet({ profile, isPublic = false }: { profile: Profile; isPubli
           {a.talent && <p>得意なことは<Pill value={a.talent} wide />だよ！</p>}
           {profile.personality && <p>性格はよく<Pill value={profile.personality} wide />って言われるよ！</p>}
           {a.holiday && <p>休みの日は<Pill value={a.holiday} wide />をしていることが多いよ！</p>}
+          {a.charm && <p>チャームポイントは<Pill value={a.charm} wide />だよ♡</p>}
+          {a.habit && <p>ついやっちゃうくせは<Pill value={a.habit} wide />だよ！</p>}
+          {a.morning && <p>朝おきて最初に<Pill value={a.morning} wide />するよ。</p>}
           {profile.activity && <p>活動内容は<Pill value={profile.activity} wide />だよ♪</p>}
           {profile.likes && <p>すきなものは<Pill value={profile.likes} wide />だよ♡</p>}
         </div>
@@ -751,30 +817,26 @@ function ProfileSheet({ profile, isPublic = false }: { profile: Profile; isPubli
         </section>
       )}
 
-      {(a.lottery || a.wish) && (
+      {ifItems.length > 0 && (
         <section className="sh-card sh-card--if">
           <h3><span className="sheet-script">If...</span></h3>
-          {a.lottery && (
-            <div className="sh-if">
-              <small>もし、宝くじが当たったら？</small>
-              <p>{a.lottery}</p>
+          {ifItems.map((item) => (
+            <div key={item.q} className="sh-if">
+              <small>{item.q}</small>
+              <p>{item.v}</p>
             </div>
-          )}
-          {a.wish && (
-            <div className="sh-if">
-              <small>もし、願い事がひとつ叶うなら？</small>
-              <p>{a.wish}</p>
-            </div>
-          )}
+          ))}
         </section>
       )}
 
-      {(a.oshi || a.oshiStory) && (
+      {(a.oshi || a.oshiStory || a.oshiPoint || a.oshiMsg) && (
         <section className="sh-card sh-card--oshi">
           <h3><small>私の推し</small></h3>
           <div className="sh-lines">
             {a.oshi && <p>私の推しは<Pill value={a.oshi} wide />が好き♡</p>}
             {a.oshiStory && <p>推しとの出会いは<Pill value={a.oshiStory} wide />だよ！</p>}
+            {a.oshiPoint && <p>推しのすきなところは<Pill value={a.oshiPoint} wide />だよ♪</p>}
+            {a.oshiMsg && <p>推しに伝えたいのは<Pill value={a.oshiMsg} wide />だよ♡</p>}
           </div>
         </section>
       )}
