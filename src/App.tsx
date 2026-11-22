@@ -78,6 +78,7 @@ type Sticker = {
   className: string
   symbol: string
   message?: string
+  from?: string
   isMine?: boolean
 }
 
@@ -332,12 +333,12 @@ const decorFiles = [
 ]
 
 const defaultStickers: Sticker[] = [
-  { id: 1, name: 'ねこ', type: 'どうぶつ', className: 'sticker--pink', symbol: 'cat-face' },
-  { id: 2, name: 'いちご', type: 'おかし', className: 'sticker--pink', symbol: 'strawberry' },
-  { id: 3, name: 'おほしさま', type: 'そら', className: 'sticker--yellow', symbol: 'glowing-star' },
-  { id: 4, name: 'くまさん', type: 'どうぶつ', className: 'sticker--yellow', symbol: 'bear' },
-  { id: 5, name: 'にじ', type: 'そら', className: 'sticker--blue', symbol: 'rainbow' },
-  { id: 6, name: 'さくら', type: 'かざり', className: 'sticker--pink', symbol: 'cherry-blossom' },
+  { id: 1, name: 'ねこ', type: 'どうぶつ', className: 'sticker--pink', symbol: 'cat-face', from: 'さくら', message: '今日もおつかれさま！ゆっくり休んでね' },
+  { id: 2, name: 'いちご', type: 'おかし', className: 'sticker--pink', symbol: 'strawberry', from: 'ゆうな', message: 'プロフ見たよ！いちご好きなんだね、おそろい♡' },
+  { id: 3, name: 'おほしさま', type: 'そら', className: 'sticker--yellow', symbol: 'glowing-star', from: 'そら', message: '配信たのしみにしてるよ☆' },
+  { id: 4, name: 'くまさん', type: 'どうぶつ', className: 'sticker--yellow', symbol: 'bear', from: 'みなと', message: 'また一緒にゲームしようね！' },
+  { id: 5, name: 'にじ', type: 'そら', className: 'sticker--blue', symbol: 'rainbow', from: 'りん', message: 'いつも元気をもらってます！' },
+  { id: 6, name: 'さくら', type: 'かざり', className: 'sticker--pink', symbol: 'cherry-blossom', from: 'はるか', message: 'ぷろぺた交換してくれてありがとう♪' },
 ]
 
 const publicProfile: Profile = {
@@ -1421,7 +1422,7 @@ function StickerCard({
         <StickerFace symbol={sticker.symbol} />
       </span>
       <strong>{sticker.name}</strong>
-      <small>{sticker.type}</small>
+      <small>{sticker.from ? `${sticker.from}さんから` : sticker.type}</small>
     </button>
   )
 }
@@ -1477,7 +1478,7 @@ function StickersPage({ stickers, ownerName }: { stickers: Sticker[]; ownerName:
             <span className={`sticker-art sticker-art--large ${selectedSticker.className}`}>
               <StickerFace symbol={selectedSticker.symbol} />
             </span>
-            <p>{selectedSticker.type}</p>
+            <p>{selectedSticker.from ? `${selectedSticker.from}さんから` : selectedSticker.type}</p>
             <h2 id="sticker-title">{selectedSticker.name}</h2>
             {selectedSticker.message && <blockquote>{selectedSticker.message}</blockquote>}
             <span className="rarity">✦ RARE STICKER ✦</span>
