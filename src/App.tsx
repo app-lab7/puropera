@@ -865,6 +865,24 @@ function EditProfilePage({
     setDraft((current) => ({ ...current, favorites: { ...current.favorites, [key]: value } }))
   }
 
+  const fillDemo = () => {
+    setDraft((current) => ({
+      ...current,
+      likes: publicProfile.likes,
+      activity: publicProfile.activity,
+      message: publicProfile.message,
+      nickname: publicProfile.nickname,
+      birthMonth: publicProfile.birthMonth,
+      birthDay: publicProfile.birthDay,
+      bloodType: publicProfile.bloodType,
+      personality: publicProfile.personality,
+      favorites: { ...publicProfile.favorites },
+      answers: { ...publicProfile.answers },
+      freeSpace: publicProfile.freeSpace,
+      which: { ...publicProfile.which },
+    }))
+  }
+
   const updateWhich = (key: WhichKey, value: WhichChoice) => {
     setDraft((current) => ({ ...current, which: { ...current.which, [key]: value } }))
   }
@@ -913,6 +931,9 @@ function EditProfilePage({
       </div>
 
       <form className="notebook-form" onSubmit={handleSubmit}>
+        <button type="button" className="demo-fill" onClick={fillDemo}>
+          ✨ デモの内容で全部うめてみる
+        </button>
         <fieldset className="book-customizer">
           <legend>プロフィール帳をデザイン</legend>
           <div className={`book-style-preview ${bookStyleClasses(draft)}`}>

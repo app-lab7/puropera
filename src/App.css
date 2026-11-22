@@ -3388,3 +3388,14 @@
   text-align: center;
   opacity: 0.8;
 }
+
+.demo-fill {
+  justify-self: stretch;
+  padding: 10px 14px;
+  background: #fff;
+  border: 2px dashed var(--hot-pink, #f06fa0);
+  border-radius: 999px;
+  color: var(--hot-pink, #f06fa0);
+  font-size: 13px;
+  font-weight: 900;
+}
