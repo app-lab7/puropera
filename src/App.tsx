@@ -469,31 +469,35 @@ function ProfileDetails({ profile }: { profile: Profile }) {
     <>
       {(profile.nickname || hasBirthday || profile.bloodType || profile.personality) && (
         <div className="fill-lines">
+          <h2 className="deco-title"><span aria-hidden="true">✦</span> ひみつのしつもん <span aria-hidden="true">✦</span></h2>
           {profile.nickname && (
-            <p>みんなには<Blank value={profile.nickname} />ってよばれてるよ</p>
+            <p><i aria-hidden="true">♡</i>みんなには<Blank value={profile.nickname} />ってよばれてるよ</p>
           )}
           {hasBirthday && (
             <p>
-              たんじょう日は<Blank value={profile.birthMonth} />月
+              <i aria-hidden="true">☾</i>たんじょう日は<Blank value={profile.birthMonth} />月
               <Blank value={profile.birthDay} />日{zodiac && <>（{zodiac}座）</>}
             </p>
           )}
           {profile.bloodType && (
-            <p>血液型は<Blank value={profile.bloodType} />型</p>
+            <p><i aria-hidden="true">✚</i>血液型は<Blank value={profile.bloodType} />型</p>
           )}
           {profile.personality && (
-            <p>よく<Blank value={profile.personality} />って言われるよ</p>
+            <p><i aria-hidden="true">☆</i>よく<Blank value={profile.personality} />って言われるよ</p>
           )}
         </div>
       )}
 
       {filledFavorites.length > 0 && (
         <div className="favorite-section">
-          <h2 className="favorite-title">♡ MY FAVORITE</h2>
+          <h2 className="deco-title deco-title--ribbon">MY FAVORITE</h2>
           <ul className="favorite-grid">
             {filledFavorites.map((option) => (
               <li key={option.id}>
-                <span>{option.label}</span>
+                <svg viewBox="0 0 100 92" aria-hidden="true" preserveAspectRatio="none">
+                  <path d="M50 88C20 64 4 48 4 28 4 14 15 4 28 4c9 0 17 5 22 13C55 9 63 4 72 4c13 0 24 10 24 24 0 20-16 36-46 60Z" />
+                </svg>
+                <span className="favorite-label">★ {option.label} ★</span>
                 <strong>{profile.favorites[option.id]}</strong>
               </li>
             ))}
@@ -503,8 +507,10 @@ function ProfileDetails({ profile }: { profile: Profile }) {
 
       {profile.freeSpace && (
         <div className="free-space">
-          <h2>FREE SPACE</h2>
-          <p>{profile.freeSpace}</p>
+          <div className="free-space-inner">
+            <h2>✧ FREE SPACE ✧</h2>
+            <p>{profile.freeSpace}</p>
+          </div>
         </div>
       )}
     </>
@@ -872,7 +878,7 @@ function EditProfilePage({
               <label key={option.id} className="form-field">
                 <span>{option.label}</span>
                 <input
-                  maxLength={16}
+                  maxLength={14}
                   value={draft.favorites[option.id]}
                   onChange={(event) => updateFavorite(option.id, event.target.value)}
                 />
