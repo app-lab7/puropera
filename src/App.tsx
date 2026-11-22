@@ -14,7 +14,7 @@ import '@fontsource/dancing-script/latin-700.css'
 import './App.css'
 
 type AvatarId = 'violet' | 'mint' | 'peach'
-type StickerType = '立ち絵' | 'デフォルメ' | 'サイン風'
+type StickerType = 'どうぶつ' | 'おかし' | 'そら' | 'かざり'
 type BookColor = 'pink' | 'mint' | 'violet' | 'sky' | 'lemon' | 'coral' | 'mono' | 'night'
 type BookShape = 'classic' | 'round' | 'game' | 'square' | 'diary'
 type BookPattern = 'check' | 'stars' | 'plain' | 'dots' | 'stripe' | 'grid'
@@ -222,8 +222,8 @@ const answerQuestions: { id: AnswerKey; label: string; placeholder: string; grou
   { id: 'oshiStory', label: '推しとの出会い', placeholder: '例：偶然ライブ配信を見て', group: 'oshi' },
   { id: 'oshiPoint', label: '推しのすきなところ', placeholder: '例：声と笑い方', group: 'oshi' },
   { id: 'oshiMsg', label: '推しに伝えたいこと', placeholder: '例：いつもありがとう！', group: 'oshi' },
-  { id: 'from', label: 'まわしてくれた人', placeholder: '例：ひなちゃん', group: 'pass' },
-  { id: 'next', label: 'つぎにまわしたい人', placeholder: '例：みおちゃん', group: 'pass' },
+  { id: 'from', label: 'まわしてくれた人', placeholder: '例：さくらちゃん', group: 'pass' },
+  { id: 'next', label: 'つぎにまわしたい人', placeholder: '例：ゆうなちゃん', group: 'pass' },
 ]
 
 const emptyAnswers: Record<AnswerKey, string> = {
@@ -268,12 +268,12 @@ function zodiacOf(monthText: string, dayText: string) {
 }
 
 const initialProfile: Profile = {
-  displayName: '星乃 しぃ',
-  accountId: '@shii',
+  displayName: '桜井 ひなた',
+  accountId: '@hinata',
   likes: 'クリームソーダ・星空・ゲーム音楽',
   activity: 'ゲーム配信とイラストをゆるっと更新中！',
   message: '見つけてくれてありがとう。いっしょに楽しい思い出つくろ〜！',
-  nickname: 'しぃ',
+  nickname: 'ひなた',
   birthMonth: '',
   birthDay: '',
   bloodType: '',
@@ -326,22 +326,27 @@ const bookPatternOptions: { id: BookPattern; label: string }[] = [
   { id: 'grid', label: '方眼ノート' },
 ]
 
+const decorFiles = [
+  'bear', 'candy', 'cat-face', 'cherry-blossom', 'cloud', 'crescent-moon', 'cupcake', 'glowing-star',
+  'paw-prints', 'pink-heart', 'rabbit-face', 'rainbow', 'ribbon', 'shortcake', 'strawberry', 'teddy-bear',
+]
+
 const defaultStickers: Sticker[] = [
-  { id: 1, name: '放課後ヒロイン', type: '立ち絵', className: 'sticker--stand-pink', symbol: '✦' },
-  { id: 2, name: 'ゆるねこ', type: 'デフォルメ', className: 'sticker--chibi-mint', symbol: 'ฅ' },
-  { id: 3, name: 'HIKARI', type: 'サイン風', className: 'sticker--sign-blue', symbol: 'H!' },
-  { id: 4, name: '制服スタイル', type: '立ち絵', className: 'sticker--stand-blue', symbol: '★' },
-  { id: 5, name: 'ちび天使', type: 'デフォルメ', className: 'sticker--chibi-yellow', symbol: '♡' },
-  { id: 6, name: 'しぃサイン', type: 'サイン風', className: 'sticker--sign-pink', symbol: 'しぃ' },
+  { id: 1, name: 'ねこ', type: 'どうぶつ', className: 'sticker--pink', symbol: 'cat-face' },
+  { id: 2, name: 'いちご', type: 'おかし', className: 'sticker--pink', symbol: 'strawberry' },
+  { id: 3, name: 'おほしさま', type: 'そら', className: 'sticker--yellow', symbol: 'glowing-star' },
+  { id: 4, name: 'くまさん', type: 'どうぶつ', className: 'sticker--yellow', symbol: 'bear' },
+  { id: 5, name: 'にじ', type: 'そら', className: 'sticker--blue', symbol: 'rainbow' },
+  { id: 6, name: 'さくら', type: 'かざり', className: 'sticker--pink', symbol: 'cherry-blossom' },
 ]
 
 const publicProfile: Profile = {
-  displayName: '星乃しぃ',
-  accountId: '@shii',
+  displayName: '桜井ひなた',
+  accountId: '@hinata',
   likes: 'クリームソーダ・星空・ゲーム音楽',
   activity: 'ゲーム配信とイラストをゆるっと更新中！',
   message: '見つけてくれてありがとう。記念のシール、受け取ってね！',
-  nickname: 'しぃ',
+  nickname: 'ひなた',
   birthMonth: '7',
   birthDay: '7',
   bloodType: 'O',
@@ -391,8 +396,8 @@ const publicProfile: Profile = {
     oshiStory: '偶然ライブ配信を見て',
     oshiPoint: '声と笑い方',
     oshiMsg: 'いつも元気をありがとう！',
-    from: 'ひなちゃん',
-    next: 'みおちゃん',
+    from: 'さくらちゃん',
+    next: 'ゆうなちゃん',
   },
   freeSpace: 'ゲーム配信とイラストをゆるっと更新中！遊びにきてね✦',
   favoriteShape: 'scallop',
@@ -411,22 +416,22 @@ const publicProfile: Profile = {
 
 const publicSticker: Sticker = {
   id: 1001,
-  name: 'しぃのきらめき',
-  type: '立ち絵',
-  className: 'sticker--stand-purple',
-  symbol: '✦',
+  name: 'ひなたのいちご',
+  type: 'おかし',
+  className: 'sticker--pink',
+  symbol: 'strawberry',
   message: '出会えた記念だよ！これからもよろしくね ♡',
 }
 
 const MY_STICKER_ID = 1000
 
 function accountSlug(accountId: string) {
-  return accountId.replace(/^@/, '').trim().toLowerCase() || 'shii'
+  return accountId.replace(/^@/, '').trim().toLowerCase() || 'hinata'
 }
 
 function canonicalSlug(accountId: string) {
   const slug = accountSlug(accountId)
-  if (slug === 'mio' || slug === 'mio_hoshi') return 'shii'
+  if (slug === 'mio' || slug === 'mio_hoshi' || slug === 'shii') return 'hinata'
   return slug
 }
 
@@ -473,18 +478,25 @@ function compressImageFile(file: File) {
 }
 
 const stickerDesigns: StickerDesign[] = [
-  { id: 'stand-pink', label: 'きらめきピンク', type: '立ち絵', className: 'sticker--stand-pink', symbol: '✦' },
-  { id: 'stand-blue', label: 'スクールブルー', type: '立ち絵', className: 'sticker--stand-blue', symbol: '★' },
-  { id: 'stand-purple', label: 'ドリームパープル', type: '立ち絵', className: 'sticker--stand-purple', symbol: '☾' },
-  { id: 'chibi-mint', label: 'まるねこミント', type: 'デフォルメ', className: 'sticker--chibi-mint', symbol: 'ฅ' },
-  { id: 'chibi-yellow', label: 'ちび天使イエロー', type: 'デフォルメ', className: 'sticker--chibi-yellow', symbol: '♡' },
-  { id: 'chibi-pink', label: 'うさぎピンク', type: 'デフォルメ', className: 'sticker--chibi-pink', symbol: 'ᕱ' },
-  { id: 'sign-blue', label: 'クールサイン', type: 'サイン風', className: 'sticker--sign-blue', symbol: 'H!' },
-  { id: 'sign-pink', label: 'ふわ文字サイン', type: 'サイン風', className: 'sticker--sign-pink', symbol: 'しぃ' },
-  { id: 'sign-mint', label: 'きらきらサイン', type: 'サイン風', className: 'sticker--sign-mint', symbol: 'M☆' },
+  { id: 'cat', label: 'ねこ', type: 'どうぶつ', className: 'sticker--pink', symbol: 'cat-face' },
+  { id: 'rabbit', label: 'うさぎ', type: 'どうぶつ', className: 'sticker--pink', symbol: 'rabbit-face' },
+  { id: 'bear', label: 'くま', type: 'どうぶつ', className: 'sticker--pink', symbol: 'bear' },
+  { id: 'teddy', label: 'テディ', type: 'どうぶつ', className: 'sticker--pink', symbol: 'teddy-bear' },
+  { id: 'strawberry', label: 'いちご', type: 'おかし', className: 'sticker--pink', symbol: 'strawberry' },
+  { id: 'shortcake', label: 'ショートケーキ', type: 'おかし', className: 'sticker--pink', symbol: 'shortcake' },
+  { id: 'cupcake', label: 'カップケーキ', type: 'おかし', className: 'sticker--pink', symbol: 'cupcake' },
+  { id: 'candy', label: 'キャンディ', type: 'おかし', className: 'sticker--pink', symbol: 'candy' },
+  { id: 'star', label: 'おほしさま', type: 'そら', className: 'sticker--pink', symbol: 'glowing-star' },
+  { id: 'moon', label: '三日月', type: 'そら', className: 'sticker--pink', symbol: 'crescent-moon' },
+  { id: 'rainbow', label: 'にじ', type: 'そら', className: 'sticker--pink', symbol: 'rainbow' },
+  { id: 'cloud', label: 'くも', type: 'そら', className: 'sticker--pink', symbol: 'cloud' },
+  { id: 'ribbon', label: 'リボン', type: 'かざり', className: 'sticker--pink', symbol: 'ribbon' },
+  { id: 'heart', label: 'ハート', type: 'かざり', className: 'sticker--pink', symbol: 'pink-heart' },
+  { id: 'sakura', label: 'さくら', type: 'かざり', className: 'sticker--pink', symbol: 'cherry-blossom' },
+  { id: 'paw', label: 'あしあと', type: 'かざり', className: 'sticker--pink', symbol: 'paw-prints' },
 ]
 
-const stickerTypes: StickerType[] = ['立ち絵', 'デフォルメ', 'サイン風']
+const stickerTypes: StickerType[] = ['どうぶつ', 'おかし', 'そら', 'かざり']
 
 const bookStyleClasses = (profile: Profile) => (
   `book-color--${profile.bookColor} book-shape--${profile.bookShape} book-pattern--${profile.bookPattern} book-font--${profile.fontStyle} book-decor--${profile.decorSet}`
@@ -554,7 +566,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
 }
 
 function HomePage({ profile, stickerCount }: { profile: Profile; stickerCount: number }) {
-  const shortName = profile.displayName.replace(/\s/g, '').slice(-2) || 'しぃ'
+  const shortName = profile.nickname || profile.displayName.replace(/\s/g, '') || 'ひなた'
 
   return (
     <section className="home-page page-enter">
@@ -1166,7 +1178,7 @@ function EditProfilePage({
             <span>よばれ方</span>
             <input
               maxLength={12}
-              placeholder="例：しぃ、ひろちゃん"
+              placeholder="例：ひなた、ひなっち"
               value={draft.nickname}
               onChange={(event) => updateField('nickname', event.target.value)}
             />
@@ -1385,6 +1397,11 @@ function EditProfilePage({
   )
 }
 
+function StickerFace({ symbol }: { symbol: string }) {
+  const known = decorFiles.includes(symbol) ? symbol : 'glowing-star'
+  return <img className="sticker-face" src={`${import.meta.env.BASE_URL}decor/${known}.svg`} alt="" />
+}
+
 function StickerCard({
   sticker,
   onSelect,
@@ -1401,7 +1418,7 @@ function StickerCard({
     >
       {sticker.isMine && <span className="mine-label">わたしのシール</span>}
       <span className={`sticker-art ${sticker.className}`}>
-        <span>{sticker.symbol}</span>
+        <StickerFace symbol={sticker.symbol} />
       </span>
       <strong>{sticker.name}</strong>
       <small>{sticker.type}</small>
@@ -1458,7 +1475,7 @@ function StickersPage({ stickers, ownerName }: { stickers: Sticker[]; ownerName:
             </button>
             {selectedSticker.isMine && <span className="modal-mine-label">MY STICKER</span>}
             <span className={`sticker-art sticker-art--large ${selectedSticker.className}`}>
-              <span>{selectedSticker.symbol}</span>
+              <StickerFace symbol={selectedSticker.symbol} />
             </span>
             <p>{selectedSticker.type}</p>
             <h2 id="sticker-title">{selectedSticker.name}</h2>
@@ -1472,9 +1489,9 @@ function StickersPage({ stickers, ownerName }: { stickers: Sticker[]; ownerName:
 }
 
 function CreateStickerPage({ onSave }: { onSave: (sticker: Sticker) => void }) {
-  const [selectedType, setSelectedType] = useState<StickerType>('立ち絵')
+  const [selectedType, setSelectedType] = useState<StickerType>('どうぶつ')
   const [selectedDesignId, setSelectedDesignId] = useState(stickerDesigns[0].id)
-  const [name, setName] = useState('しぃのキラシール')
+  const [name, setName] = useState('ひなたのいちごシール')
   const [message, setMessage] = useState('見つけてくれてありがとう！')
   const navigate = useNavigate()
   const visibleDesigns = stickerDesigns.filter((design) => design.type === selectedType)
@@ -1515,7 +1532,7 @@ function CreateStickerPage({ onSave }: { onSave: (sticker: Sticker) => void }) {
         <div className="sticker-preview-card">
           <span className="preview-label">PREVIEW</span>
           <span className={`sticker-art sticker-art--preview ${selectedDesign.className}`}>
-            <span>{selectedDesign.symbol}</span>
+            <StickerFace symbol={selectedDesign.symbol} />
           </span>
           <strong>{name || 'シール名'}</strong>
           <p>{message || 'ひとことメッセージ'}</p>
@@ -1531,7 +1548,7 @@ function CreateStickerPage({ onSave }: { onSave: (sticker: Sticker) => void }) {
                 className={selectedType === type ? 'selected' : ''}
                 onClick={() => selectType(type)}
               >
-                {type}シール
+                {type}
               </button>
             ))}
           </div>
@@ -1549,7 +1566,7 @@ function CreateStickerPage({ onSave }: { onSave: (sticker: Sticker) => void }) {
                   onChange={() => setSelectedDesignId(design.id)}
                 />
                 <span className={`sticker-art sticker-art--choice ${design.className}`}>
-                  <span>{design.symbol}</span>
+                  <StickerFace symbol={design.symbol} />
                 </span>
                 <small>{design.label}</small>
               </label>
@@ -1599,7 +1616,7 @@ function PublicProfilePage({ hasReceived }: { hasReceived: boolean }) {
       </div>
       <div className="page-heading">
         <div>
-          <p className="eyebrow">SHII&apos;S PROFILE BOOK</p>
+          <p className="eyebrow">HINATA&apos;S PROFILE BOOK</p>
           <h1>{publicProfile.displayName}のぷろぺた</h1>
         </div>
         <span className="page-number">♡</span>
@@ -1613,13 +1630,13 @@ function PublicProfilePage({ hasReceived }: { hasReceived: boolean }) {
           <h2>配布中のシール</h2>
         </div>
         <span className={`sticker-art sticker-art--offer ${publicSticker.className}`}>
-          <span>{publicSticker.symbol}</span>
+          <StickerFace symbol={publicSticker.symbol} />
         </span>
         <strong>{publicSticker.name}</strong>
         <p>{publicSticker.message}</p>
       </section>
 
-      <Link className="receive-button" to="/p/shii/receive">
+      <Link className="receive-button" to="/p/hinata/receive">
         <span aria-hidden="true">{hasReceived ? '✓' : '✦'}</span>
         <span>{hasReceived ? '受け取り状況を見る' : 'このシールを受け取る'}</span>
         <span aria-hidden="true">›</span>
@@ -1640,12 +1657,12 @@ function ReceiveStickerPage({
 
   const handleReceive = () => {
     if (hasReceived) {
-      navigate('/p/shii/received', { state: { duplicate: true } })
+      navigate('/p/hinata/received', { state: { duplicate: true } })
       return
     }
 
     onReceive(publicSticker)
-    navigate('/p/shii/received', { state: { duplicate: false } })
+    navigate('/p/hinata/received', { state: { duplicate: false } })
   }
 
   return (
@@ -1663,7 +1680,7 @@ function ReceiveStickerPage({
         <div className="envelope-back" />
         <div className="delivery-card">
           <span className={`sticker-art sticker-art--delivery ${publicSticker.className}`}>
-            <span>{publicSticker.symbol}</span>
+            <StickerFace symbol={publicSticker.symbol} />
           </span>
           <strong>{publicSticker.name}</strong>
           <small>{publicSticker.message}</small>
@@ -1687,7 +1704,7 @@ function ReceiveStickerPage({
         <span>{hasReceived ? '持っているシールを見る' : 'シール帳にしまう'}</span>
         <span aria-hidden="true">›</span>
       </button>
-      <p className="destination-note">受け取り先：しぃのシール帳</p>
+      <p className="destination-note">受け取り先：ひなたのシール帳</p>
     </section>
   )
 }
@@ -1705,7 +1722,7 @@ function ReceivedStickerPage({ hasReceived }: { hasReceived: boolean }) {
           <span className="paste-ring ring-b" />
           <p>MY STICKER ALBUM</p>
           <span className={`sticker-art sticker-art--pasted ${publicSticker.className}`}>
-            <span>{publicSticker.symbol}</span>
+            <StickerFace symbol={publicSticker.symbol} />
           </span>
           <span className="paste-spark spark-one">✦</span>
           <span className="paste-spark spark-two">♡</span>
@@ -1720,7 +1737,7 @@ function ReceivedStickerPage({ hasReceived }: { hasReceived: boolean }) {
         <p>
           {isDuplicate
             ? 'シール帳にある1枚をそのまま大切にしよう'
-            : `${publicProfile.displayName}さんのシールが、しぃのシール帳に追加されました`}
+            : `${publicProfile.displayName}さんのシールが、ひなたのシール帳に追加されました`}
         </p>
       </div>
 
@@ -1793,7 +1810,7 @@ function App() {
           element={(
             <StickersPage
               stickers={stickers}
-              ownerName={profile.displayName.replace(/\s/g, '').slice(-2) || 'しぃ'}
+              ownerName={profile.nickname || profile.displayName.replace(/\s/g, '') || 'ひなた'}
             />
           )}
         />
@@ -1801,15 +1818,18 @@ function App() {
           path="/stickers/create"
           element={<CreateStickerPage onSave={setMySticker} />}
         />
-        <Route path="/p/mio" element={<Navigate to="/p/shii" replace />} />
-        <Route path="/p/mio/receive" element={<Navigate to="/p/shii/receive" replace />} />
-        <Route path="/p/mio/received" element={<Navigate to="/p/shii/received" replace />} />
+        <Route path="/p/shii" element={<Navigate to="/p/hinata" replace />} />
+        <Route path="/p/shii/receive" element={<Navigate to="/p/hinata/receive" replace />} />
+        <Route path="/p/shii/received" element={<Navigate to="/p/hinata/received" replace />} />
+        <Route path="/p/mio" element={<Navigate to="/p/hinata" replace />} />
+        <Route path="/p/mio/receive" element={<Navigate to="/p/hinata/receive" replace />} />
+        <Route path="/p/mio/received" element={<Navigate to="/p/hinata/received" replace />} />
         <Route
-          path="/p/shii"
+          path="/p/hinata"
           element={<PublicProfilePage hasReceived={hasReceivedPublicSticker} />}
         />
         <Route
-          path="/p/shii/receive"
+          path="/p/hinata/receive"
           element={(
             <ReceiveStickerPage
               hasReceived={hasReceivedPublicSticker}
@@ -1818,7 +1838,7 @@ function App() {
           )}
         />
         <Route
-          path="/p/shii/received"
+          path="/p/hinata/received"
           element={<ReceivedStickerPage hasReceived={hasReceivedPublicSticker} />}
         />
         <Route path="*" element={<HomePage profile={profile} stickerCount={stickers.length} />} />

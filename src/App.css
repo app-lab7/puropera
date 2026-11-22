@@ -3399,3 +3399,40 @@
   font-size: 13px;
   font-weight: 900;
 }
+
+/* ===== Die-cut stickers (Fluent Emoji) ===== */
+.sticker-art {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  clip-path: none !important;
+}
+
+.sticker-art::before {
+  display: none !important;
+}
+
+.sticker-art > .sticker-face {
+  display: block;
+  width: 82%;
+  height: 82%;
+  margin: auto;
+  filter:
+    drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff)
+    drop-shadow(0 4px 5px rgb(90 60 90 / 30%));
+  transform: rotate(-6deg);
+}
+
+.sticker-art {
+  display: grid;
+  place-items: center;
+}
+
+.type-tabs {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.type-tabs button {
+  padding-inline: 4px;
+  font-size: 12px;
+}
