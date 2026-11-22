@@ -13,7 +13,10 @@ import '@fontsource/dancing-script/latin-600.css'
 import '@fontsource/dancing-script/latin-700.css'
 import './App.css'
 
-type AvatarId = 'violet' | 'mint' | 'peach'
+type AvatarId =
+  | 'cat-face' | 'rabbit-face' | 'bear' | 'teddy-bear'
+  | 'strawberry' | 'cupcake' | 'candy' | 'shortcake'
+  | 'glowing-star' | 'crescent-moon' | 'rainbow' | 'cherry-blossom'
 type StickerType = 'どうぶつ' | 'おかし' | 'そら' | 'かざり'
 type BookColor = 'pink' | 'mint' | 'violet' | 'sky' | 'lemon' | 'coral' | 'mono' | 'night'
 type BookShape = 'classic' | 'round' | 'game' | 'square' | 'diary'
@@ -303,17 +306,34 @@ const initialProfile: Profile = {
   which: { ...emptyWhich },
   fontStyle: 'maru',
   decorSet: 'cute',
-  avatar: 'violet',
+  avatar: 'cat-face',
   bookColor: 'pink',
   bookShape: 'classic',
   bookPattern: 'check',
 }
 
-const avatarOptions: { id: AvatarId; label: string }[] = [
-  { id: 'violet', label: 'むらさき' },
-  { id: 'mint', label: 'ミント' },
-  { id: 'peach', label: 'ピーチ' },
+const avatarOptions: { id: AvatarId; label: string; bg: string }[] = [
+  { id: 'cat-face', label: 'ねこ', bg: '#ffe0ec' },
+  { id: 'rabbit-face', label: 'うさぎ', bg: '#e9defb' },
+  { id: 'bear', label: 'くま', bg: '#ffe9cf' },
+  { id: 'teddy-bear', label: 'テディ', bg: '#fff0c9' },
+  { id: 'strawberry', label: 'いちご', bg: '#ffe0e0' },
+  { id: 'cupcake', label: 'カップケーキ', bg: '#f9e0f5' },
+  { id: 'candy', label: 'キャンディ', bg: '#dff3ff' },
+  { id: 'shortcake', label: 'ケーキ', bg: '#fff1e6' },
+  { id: 'glowing-star', label: 'おほしさま', bg: '#e1e6ff' },
+  { id: 'crescent-moon', label: '三日月', bg: '#dde5ff' },
+  { id: 'rainbow', label: 'にじ', bg: '#e3f8ff' },
+  { id: 'cherry-blossom', label: 'さくら', bg: '#ffe6f0' },
 ]
+
+const legacyAvatars: Record<string, AvatarId> = { violet: 'cat-face', mint: 'rabbit-face', peach: 'bear' }
+
+function resolveAvatar(id: string) {
+  const known = avatarOptions.find((option) => option.id === id)
+  if (known) return known
+  return avatarOptions.find((option) => option.id === legacyAvatars[id]) ?? avatarOptions[0]
+}
 
 const bookColorOptions: { id: BookColor; label: string; color: string }[] = [
   { id: 'pink', label: 'いちごピンク', color: '#f291b2' },
@@ -425,7 +445,7 @@ const publicProfile: Profile = {
   },
   fontStyle: 'maru',
   decorSet: 'sky',
-  avatar: 'violet',
+  avatar: 'rabbit-face',
   bookColor: 'violet',
   bookShape: 'round',
   bookPattern: 'stars',
@@ -565,18 +585,17 @@ function Avatar({
   label: string
   imageSrc?: string
 }) {
+  const option = resolveAvatar(avatar)
   return (
     <div
-      className={`avatar-face avatar--${avatar}${imageSrc ? ' avatar--custom' : ''}`}
+      className={`avatar-face${imageSrc ? ' avatar--custom' : ''}`}
+      style={{ '--av-bg': option.bg } as CSSProperties}
       aria-label={label}
     >
       {imageSrc ? (
         <img src={imageSrc} alt="" />
       ) : (
-        <>
-          <span className="avatar-hair" />
-          <span className="avatar-eyes">•ᴗ•</span>
-        </>
+        <img className="avatar-emoji" src={`${import.meta.env.BASE_URL}decor/${option.id}.svg`} alt="" />
       )}
     </div>
   )
@@ -641,13 +660,14 @@ function HomePage({ profile, stickerCount }: { profile: Profile; stickerCount: n
             <span className="book-ring ring-three" />
             <p className="book-label">MY PROFILE BOOK</p>
             <div
-              className={`book-avatar book-avatar--${profile.avatar}${profile.customAvatar ? ' book-avatar--custom' : ''}`}
+              className={`book-avatar${profile.customAvatar ? ' book-avatar--custom' : ''}`}
+              style={{ '--av-bg': resolveAvatar(profile.avatar).bg } as CSSProperties}
               aria-hidden="true"
             >
               {profile.customAvatar ? (
                 <img src={profile.customAvatar} alt="" />
               ) : (
-                <span>{shortName.charAt(0)}</span>
+                <img className="avatar-emoji" src={`${import.meta.env.BASE_URL}decor/${resolveAvatar(profile.avatar).id}.svg`} alt="" />
               )}
             </div>
             <h1>{shortName}の<br />ぷろふ帳</h1>

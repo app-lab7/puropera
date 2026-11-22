@@ -3868,3 +3868,24 @@
   0% { opacity: 1; transform: translateY(0) rotate(0); }
   100% { opacity: 0; transform: translateY(105vh) translateX(40px) rotate(720deg); }
 }
+
+/* ===== Avatar (Fluent Emoji) ===== */
+.avatar-face,
+.book-avatar:not(.book-avatar--custom) {
+  background: radial-gradient(circle at 50% 40%, #fff 0 30%, transparent 72%), var(--av-bg, #ffe0ec) !important;
+}
+
+.avatar-face.avatar--custom {
+  background: #fff !important;
+}
+
+.avatar-emoji {
+  width: 78%;
+  height: 78%;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 3px rgb(90 60 90 / 22%));
+}
+
+.avatar-options {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
