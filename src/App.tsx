@@ -768,7 +768,7 @@ function ShareProfileCard({ shareUrl }: { shareUrl: string }) {
 }
 
 function Pill({ value, wide = false }: { value: string; wide?: boolean }) {
-  return <span className={`sh-pill${wide ? ' sh-pill--wide' : ''}`}>{value}</span>
+  return <span className={`sh-pill${wide ? ' sh-pill--wide' : ''}${value ? '' : ' sh-pill--empty'}`}>{value || '\u00a0'}</span>
 }
 
 function ProfileSheet({
@@ -782,10 +782,11 @@ function ProfileSheet({
 }) {
   const a = profile.answers
   const zodiac = zodiacOf(profile.birthMonth, profile.birthDay)
-  const hasBirthday = Boolean(profile.birthMonth || profile.birthDay)
-  const favorites = favoriteOptions.filter((option) => profile.favorites[option.id])
-  const hasWhich = whichQuestions.some((question) => profile.which[question.id])
-  const hasBest = Boolean(a.best1 || a.best2 || a.best3)
+  const all = !isPublic
+  const hasBirthday = all || Boolean(profile.birthMonth || profile.birthDay)
+  const favorites = favoriteOptions.filter((option) => all || profile.favorites[option.id])
+  const hasWhich = all || whichQuestions.some((question) => profile.which[question.id])
+  const hasBest = all || Boolean(a.best1 || a.best2 || a.best3)
   const moreLines: { label: string; value: string; tail: string }[] = [
     { label: 'すきな教科は', value: a.subject, tail: 'だよ！' },
     { label: 'いまハマってるのは', value: a.hamari, tail: 'だよ♪' },
@@ -797,13 +798,13 @@ function ProfileSheet({
     { label: '行ってみたい場所は', value: a.wantGo, tail: 'だよ✈' },
     { label: '友だちにするなら', value: a.friendType, tail: 'な子がいいな♡' },
     { label: 'このプロフを見た人へ', value: a.friendMsg, tail: '♡' },
-  ].filter((line) => line.value)
+  ].filter((line) => all || line.value)
   const ifItems = [
     { q: 'もし、宝くじが当たったら？', v: a.lottery },
     { q: 'もし、願い事がひとつ叶うなら？', v: a.wish },
     { q: 'もし、透明人間になれたら？', v: a.invisible },
     { q: '無人島にひとつ持っていくなら？', v: a.island },
-  ].filter((item) => item.v)
+  ].filter((item) => all || item.v)
 
   return (
     <article className={`sheet sheet--${profile.sheetTheme} ${bookStyleClasses(profile)}${isPublic ? ' public-book' : ''}`}>
@@ -825,22 +826,22 @@ function ProfileSheet({
         </figure>
         <div className="sh-lines">
           <p>ぼく・わたしのなまえは<Pill value={profile.displayName} wide />です。</p>
-          {profile.nickname && <p>みんなからは<Pill value={profile.nickname} />ってよばれてるよ！</p>}
+          {(all || profile.nickname) && <p>みんなからは<Pill value={profile.nickname} />ってよばれてるよ！</p>}
           {hasBirthday && (
             <p>
               誕生日は<Pill value={profile.birthMonth || '　'} />月<Pill value={profile.birthDay || '　'} />日生まれ
               {zodiac && <>の<Pill value={zodiac} />座</>}
             </p>
           )}
-          {profile.bloodType && <p>血液型は<Pill value={profile.bloodType} />型★</p>}
-          {a.talent && <p>得意なことは<Pill value={a.talent} wide />だよ！</p>}
-          {profile.personality && <p>性格はよく<Pill value={profile.personality} wide />って言われるよ！</p>}
-          {a.holiday && <p>休みの日は<Pill value={a.holiday} wide />をしていることが多いよ！</p>}
-          {a.charm && <p>チャームポイントは<Pill value={a.charm} wide />だよ♡</p>}
-          {a.habit && <p>ついやっちゃうくせは<Pill value={a.habit} wide />だよ！</p>}
-          {a.morning && <p>朝おきて最初に<Pill value={a.morning} wide />するよ。</p>}
-          {profile.activity && <p>活動内容は<Pill value={profile.activity} wide />だよ♪</p>}
-          {profile.likes && <p>すきなものは<Pill value={profile.likes} wide />だよ♡</p>}
+          {(all || profile.bloodType) && <p>血液型は<Pill value={profile.bloodType} />型★</p>}
+          {(all || a.talent) && <p>得意なことは<Pill value={a.talent} wide />だよ！</p>}
+          {(all || profile.personality) && <p>性格はよく<Pill value={profile.personality} wide />って言われるよ！</p>}
+          {(all || a.holiday) && <p>休みの日は<Pill value={a.holiday} wide />をしていることが多いよ！</p>}
+          {(all || a.charm) && <p>チャームポイントは<Pill value={a.charm} wide />だよ♡</p>}
+          {(all || a.habit) && <p>ついやっちゃうくせは<Pill value={a.habit} wide />だよ！</p>}
+          {(all || a.morning) && <p>朝おきて最初に<Pill value={a.morning} wide />するよ。</p>}
+          {(all || profile.activity) && <p>活動内容は<Pill value={profile.activity} wide />だよ♪</p>}
+          {(all || profile.likes) && <p>すきなものは<Pill value={profile.likes} wide />だよ♡</p>}
         </div>
       </section>
 
@@ -858,7 +859,7 @@ function ProfileSheet({
                   <path d={favoriteShapePaths[profile.favoriteShape]} />
                 </svg>
                 <span className="sh-fav-label">{option.label}</span>
-                <strong>{profile.favorites[option.id]}</strong>
+                <strong className={profile.favorites[option.id] ? '' : 'sh-blank'}>{profile.favorites[option.id] || '？'}</strong>
               </li>
             ))}
           </ul>
@@ -888,12 +889,12 @@ function ProfileSheet({
       {hasBest && (
         <section className="sh-card sh-card--best">
           <h3><span className="sheet-script">My Best3</span></h3>
-          {a.bestTitle && <p className="sh-best-title"><Pill value={a.bestTitle} wide /></p>}
+          {(all || a.bestTitle) && <p className="sh-best-title"><Pill value={a.bestTitle} wide /></p>}
           <ol className="sh-best">
             {[a.best1, a.best2, a.best3].map((value, index) => (
               <li key={index}>
                 <b className={`sh-rank sh-rank--${index + 1}`}>{index + 1}</b>
-                <span className="sh-best-value">{value}</span>
+                <span className="sh-best-value">{value || '\u00a0'}</span>
               </li>
             ))}
           </ol>
@@ -923,19 +924,19 @@ function ProfileSheet({
         </section>
       )}
 
-      {(a.oshi || a.oshiStory || a.oshiPoint || a.oshiMsg) && (
+      {(all || a.oshi || a.oshiStory || a.oshiPoint || a.oshiMsg) && (
         <section className="sh-card sh-card--oshi">
           <h3><small>私の推し</small></h3>
           <div className="sh-lines">
-            {a.oshi && <p>私の推しは<Pill value={a.oshi} wide />が好き♡</p>}
-            {a.oshiStory && <p>推しとの出会いは<Pill value={a.oshiStory} wide />だよ！</p>}
-            {a.oshiPoint && <p>推しのすきなところは<Pill value={a.oshiPoint} wide />だよ♪</p>}
-            {a.oshiMsg && <p>推しに伝えたいのは<Pill value={a.oshiMsg} wide />だよ♡</p>}
+            {(all || a.oshi) && <p>私の推しは<Pill value={a.oshi} wide />が好き♡</p>}
+            {(all || a.oshiStory) && <p>推しとの出会いは<Pill value={a.oshiStory} wide />だよ！</p>}
+            {(all || a.oshiPoint) && <p>推しのすきなところは<Pill value={a.oshiPoint} wide />だよ♪</p>}
+            {(all || a.oshiMsg) && <p>推しに伝えたいのは<Pill value={a.oshiMsg} wide />だよ♡</p>}
           </div>
         </section>
       )}
 
-      {a.dream && (
+      {(all || a.dream) && (
         <section className="sh-card">
           <h3><small>将来のゆめ</small></h3>
           <p className="sh-text">{a.dream}</p>
@@ -947,7 +948,7 @@ function ProfileSheet({
         <p className="sh-text">{profile.message}</p>
       </section>
 
-      {profile.freeSpace && (
+      {(all || profile.freeSpace) && (
         <section className="sh-card sh-card--free">
           <h3><span className="sheet-script">Free Space</span></h3>
           <p className="sh-text">{profile.freeSpace}</p>
@@ -955,7 +956,7 @@ function ProfileSheet({
         </section>
       )}
 
-      {(a.from || a.next) && (
+      {(all || a.from || a.next) && (
         <section className="sh-pass">
           <small>♡ プロフ帳のまわし先 ♡</small>
           <div className="sh-pass-chain">
