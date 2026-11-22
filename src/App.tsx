@@ -1,6 +1,18 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import '@fontsource/mochiy-pop-one/japanese-400.css'
+import '@fontsource/mochiy-pop-one/latin-400.css'
+import '@fontsource/hachi-maru-pop/japanese-400.css'
+import '@fontsource/hachi-maru-pop/latin-400.css'
+import '@fontsource/zen-maru-gothic/japanese-500.css'
+import '@fontsource/zen-maru-gothic/japanese-700.css'
+import '@fontsource/zen-maru-gothic/latin-500.css'
+import '@fontsource/zen-maru-gothic/latin-700.css'
+import '@fontsource/zen-kurenaido/japanese-400.css'
+import '@fontsource/zen-kurenaido/latin-400.css'
+import '@fontsource/kiwi-maru/japanese-500.css'
+import '@fontsource/kiwi-maru/latin-500.css'
 import './App.css'
 
 type AvatarId = 'violet' | 'mint' | 'peach'
@@ -16,6 +28,9 @@ type FavoriteKey =
 type FavoriteShape = 'heart' | 'round' | 'square' | 'bubble'
 type QuestionStyle = 'note' | 'sticky' | 'simple'
 type FreeFrame = 'round' | 'photo' | 'stitch'
+
+type FontStyle = 'standard' | 'pop' | 'maru' | 'soft' | 'hand' | 'kiwi'
+type DecorSet = 'none' | 'sweets' | 'sky' | 'cute' | 'animals'
 
 type BloodType = '' | 'A' | 'B' | 'O' | 'AB'
 
@@ -35,6 +50,8 @@ type Profile = {
   favoriteShape: FavoriteShape
   questionStyle: QuestionStyle
   freeFrame: FreeFrame
+  fontStyle: FontStyle
+  decorSet: DecorSet
   avatar: AvatarId
   customAvatar?: string
   bookColor: BookColor
@@ -86,6 +103,38 @@ const freeFrameOptions: { id: FreeFrame; label: string }[] = [
   { id: 'photo', label: 'ポラロイド' },
   { id: 'stitch', label: 'ぬいめ' },
 ]
+
+const fontStyleOptions: { id: FontStyle; label: string; family: string }[] = [
+  { id: 'standard', label: 'ふつう', family: 'inherit' },
+  { id: 'pop', label: 'ポップ', family: "'Mochiy Pop One', sans-serif" },
+  { id: 'maru', label: 'まるもじ', family: "'Hachi Maru Pop', sans-serif" },
+  { id: 'soft', label: 'やわらか', family: "'Zen Maru Gothic', sans-serif" },
+  { id: 'hand', label: 'てがき', family: "'Zen Kurenaido', sans-serif" },
+  { id: 'kiwi', label: 'しっとり', family: "'Kiwi Maru', serif" },
+]
+
+const decorSets: Record<DecorSet, { label: string; icons: string[] }> = {
+  none: { label: 'なし', icons: [] },
+  sweets: { label: 'スイーツ', icons: ['strawberry', 'shortcake', 'candy', 'cupcake'] },
+  sky: { label: 'そら', icons: ['glowing-star', 'crescent-moon', 'rainbow', 'cloud'] },
+  cute: { label: 'ガーリー', icons: ['ribbon', 'pink-heart', 'cherry-blossom', 'teddy-bear'] },
+  animals: { label: 'どうぶつ', icons: ['cat-face', 'rabbit-face', 'bear', 'paw-prints'] },
+}
+
+function DecorIcon({ set, index, className }: { set: DecorSet; index: number; className?: string }) {
+  const icons = decorSets[set].icons
+  if (icons.length === 0) return null
+  const name = icons[index % icons.length]
+  return (
+    <img
+      className={`decor-icon ${className ?? ''}`}
+      src={`${import.meta.env.BASE_URL}decor/${name}.svg`}
+      alt=""
+      aria-hidden="true"
+      loading="lazy"
+    />
+  )
+}
 
 const favoriteShapePaths: Record<FavoriteShape, string> = {
   heart: 'M50 88C20 64 4 48 4 28 4 14 15 4 28 4c9 0 17 5 22 13C55 9 63 4 72 4c13 0 24 10 24 24 0 20-16 36-46 60Z',
@@ -142,6 +191,8 @@ const initialProfile: Profile = {
   favoriteShape: 'heart',
   questionStyle: 'note',
   freeFrame: 'round',
+  fontStyle: 'maru',
+  decorSet: 'cute',
   avatar: 'violet',
   bookColor: 'pink',
   bookShape: 'classic',
@@ -217,6 +268,8 @@ const publicProfile: Profile = {
   favoriteShape: 'heart',
   questionStyle: 'note',
   freeFrame: 'round',
+  fontStyle: 'pop',
+  decorSet: 'sky',
   avatar: 'violet',
   bookColor: 'violet',
   bookShape: 'round',
@@ -301,7 +354,7 @@ const stickerDesigns: StickerDesign[] = [
 const stickerTypes: StickerType[] = ['立ち絵', 'デフォルメ', 'サイン風']
 
 const bookStyleClasses = (profile: Profile) => (
-  `book-color--${profile.bookColor} book-shape--${profile.bookShape} book-pattern--${profile.bookPattern}`
+  `book-color--${profile.bookColor} book-shape--${profile.bookShape} book-pattern--${profile.bookPattern} book-font--${profile.fontStyle} book-decor--${profile.decorSet}`
 )
 
 function Avatar({
@@ -508,7 +561,11 @@ function ProfileDetails({ profile }: { profile: Profile }) {
     <>
       {(profile.nickname || hasBirthday || profile.bloodType || profile.personality) && (
         <div className={`fill-lines fill-lines--${profile.questionStyle}`}>
-          <h2 className="deco-title"><span aria-hidden="true">✦</span> ひみつのしつもん <span aria-hidden="true">✦</span></h2>
+          <h2 className="deco-title">
+            <DecorIcon set={profile.decorSet} index={2} className="decor-icon--title" />
+            ひみつのしつもん
+            <DecorIcon set={profile.decorSet} index={3} className="decor-icon--title" />
+          </h2>
           {profile.nickname && (
             <p><i aria-hidden="true">♡</i>みんなには<Blank value={profile.nickname} />ってよばれてるよ</p>
           )}
@@ -529,7 +586,11 @@ function ProfileDetails({ profile }: { profile: Profile }) {
 
       {filledFavorites.length > 0 && (
         <div className="favorite-section">
-          <h2 className="deco-title deco-title--ribbon">MY FAVORITE</h2>
+          <h2 className="deco-title deco-title--ribbon">
+            <DecorIcon set={profile.decorSet} index={0} className="decor-icon--ribbon decor-icon--left" />
+            MY FAVORITE
+            <DecorIcon set={profile.decorSet} index={1} className="decor-icon--ribbon decor-icon--right" />
+          </h2>
           <ul className={`favorite-grid favorite-grid--${profile.favoriteShape}`}>
             {filledFavorites.map((option) => (
               <li key={option.id}>
@@ -550,6 +611,7 @@ function ProfileDetails({ profile }: { profile: Profile }) {
             <h2>✧ FREE SPACE ✧</h2>
             <p>{profile.freeSpace}</p>
           </div>
+          <DecorIcon set={profile.decorSet} index={0} className="decor-icon--corner" />
         </div>
       )}
     </>
@@ -569,6 +631,10 @@ function ProfilePage({ profile }: { profile: Profile }) {
 
       <article className={`open-book ${bookStyleClasses(profile)}`}>
         <div className="book-spine" aria-hidden="true" />
+        <div className="book-decor" aria-hidden="true">
+          <DecorIcon set={profile.decorSet} index={1} className="decor-icon--float-a" />
+          <DecorIcon set={profile.decorSet} index={2} className="decor-icon--float-b" />
+        </div>
         <div className="profile-top">
           <div className="profile-photo">
             <Avatar
@@ -961,6 +1027,39 @@ function EditProfilePage({
               </div>
             </div>
           ))}
+          <div className="form-field form-field--row">
+            <span>もじ（フォント）</span>
+            <div className="chip-options chip-options--wrap">
+              {fontStyleOptions.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  className={draft.fontStyle === option.id ? 'selected' : ''}
+                  style={{ fontFamily: option.family }}
+                  aria-pressed={draft.fontStyle === option.id}
+                  onClick={() => updateField('fontStyle', option.id)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="form-field form-field--row">
+            <span>デコ（かざり）</span>
+            <div className="chip-options chip-options--wrap">
+              {(Object.keys(decorSets) as DecorSet[]).map((id) => (
+                <button
+                  key={id}
+                  type="button"
+                  className={draft.decorSet === id ? 'selected' : ''}
+                  aria-pressed={draft.decorSet === id}
+                  onClick={() => updateField('decorSet', id)}
+                >
+                  {decorSets[id].label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className={`details-preview ${bookStyleClasses(draft)}`}>
             <small>プレビュー</small>
             <ProfileDetails
@@ -969,6 +1068,8 @@ function EditProfilePage({
                 favoriteShape: draft.favoriteShape,
                 questionStyle: draft.questionStyle,
                 freeFrame: draft.freeFrame,
+                fontStyle: draft.fontStyle,
+                decorSet: draft.decorSet,
               }}
             />
           </div>
@@ -1206,6 +1307,10 @@ function PublicProfilePage({ hasReceived }: { hasReceived: boolean }) {
 
       <article className={`open-book public-book ${bookStyleClasses(publicProfile)}`}>
         <div className="book-spine" aria-hidden="true" />
+        <div className="book-decor" aria-hidden="true">
+          <DecorIcon set={publicProfile.decorSet} index={1} className="decor-icon--float-a" />
+          <DecorIcon set={publicProfile.decorSet} index={2} className="decor-icon--float-b" />
+        </div>
         <div className="profile-top">
           <div className="profile-photo">
             <Avatar avatar={publicProfile.avatar} label={`${publicProfile.displayName}の仮アイコン`} />
