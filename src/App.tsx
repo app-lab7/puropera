@@ -9,12 +9,25 @@ type BookColor = 'pink' | 'mint' | 'violet' | 'sky' | 'lemon' | 'coral' | 'mono'
 type BookShape = 'classic' | 'round' | 'game' | 'square' | 'diary'
 type BookPattern = 'check' | 'stars' | 'plain' | 'dots' | 'stripe' | 'grid'
 
+type FavoriteKey =
+  | 'food' | 'drink' | 'animal' | 'color'
+  | 'anime' | 'game' | 'music' | 'hobby'
+
+type BloodType = '' | 'A' | 'B' | 'O' | 'AB'
+
 type Profile = {
   displayName: string
   accountId: string
   likes: string
   activity: string
   message: string
+  nickname: string
+  birthMonth: string
+  birthDay: string
+  bloodType: BloodType
+  personality: string
+  favorites: Record<FavoriteKey, string>
+  freeSpace: string
   avatar: AvatarId
   customAvatar?: string
   bookColor: BookColor
@@ -37,12 +50,62 @@ type StickerDesign = Pick<Sticker, 'type' | 'className' | 'symbol'> & {
   label: string
 }
 
+const favoriteOptions: { id: FavoriteKey; label: string }[] = [
+  { id: 'food', label: '食べ物' },
+  { id: 'drink', label: '飲み物' },
+  { id: 'animal', label: '動物' },
+  { id: 'color', label: '色' },
+  { id: 'anime', label: 'アニメ' },
+  { id: 'game', label: 'ゲーム' },
+  { id: 'music', label: '音楽' },
+  { id: 'hobby', label: 'しゅみ' },
+]
+
+const bloodTypeOptions: BloodType[] = ['A', 'B', 'O', 'AB']
+
+const emptyFavorites: Record<FavoriteKey, string> = {
+  food: '', drink: '', animal: '', color: '',
+  anime: '', game: '', music: '', hobby: '',
+}
+
+const zodiacBorders: { month: number; day: number; name: string }[] = [
+  { month: 1, day: 20, name: 'みずがめ' },
+  { month: 2, day: 19, name: 'うお' },
+  { month: 3, day: 21, name: 'おひつじ' },
+  { month: 4, day: 20, name: 'おうし' },
+  { month: 5, day: 21, name: 'ふたご' },
+  { month: 6, day: 22, name: 'かに' },
+  { month: 7, day: 23, name: 'しし' },
+  { month: 8, day: 23, name: 'おとめ' },
+  { month: 9, day: 23, name: 'てんびん' },
+  { month: 10, day: 24, name: 'さそり' },
+  { month: 11, day: 23, name: 'いて' },
+  { month: 12, day: 22, name: 'やぎ' },
+]
+
+function zodiacOf(monthText: string, dayText: string) {
+  const month = Number(monthText)
+  const day = Number(dayText)
+  if (!month || !day) return ''
+  const border = zodiacBorders[month - 1]
+  if (!border) return ''
+  if (day >= border.day) return border.name
+  return zodiacBorders[(month + 10) % 12].name
+}
+
 const initialProfile: Profile = {
   displayName: '星乃 しぃ',
   accountId: '@shii',
   likes: 'クリームソーダ・星空・ゲーム音楽',
   activity: 'ゲーム配信とイラストをゆるっと更新中！',
   message: '見つけてくれてありがとう。いっしょに楽しい思い出つくろ〜！',
+  nickname: 'しぃ',
+  birthMonth: '',
+  birthDay: '',
+  bloodType: '',
+  personality: '',
+  favorites: { ...emptyFavorites, drink: 'クリームソーダ', game: 'リズムゲーム', music: 'ゲーム音楽' },
+  freeSpace: '',
   avatar: 'violet',
   bookColor: 'pink',
   bookShape: 'classic',
@@ -98,6 +161,23 @@ const publicProfile: Profile = {
   likes: 'クリームソーダ・星空・ゲーム音楽',
   activity: 'ゲーム配信とイラストをゆるっと更新中！',
   message: '見つけてくれてありがとう。記念のシール、受け取ってね！',
+  nickname: 'しぃ',
+  birthMonth: '7',
+  birthDay: '7',
+  bloodType: 'O',
+  personality: 'マイペース',
+  favorites: {
+    ...emptyFavorites,
+    food: 'いちごのスイーツ',
+    drink: 'クリームソーダ',
+    animal: 'ねこ',
+    color: 'ラベンダー',
+    anime: '魔法少女もの',
+    game: 'リズムゲーム',
+    music: 'ゲーム音楽',
+    hobby: 'イラスト・星空さんぽ',
+  },
+  freeSpace: 'ゲーム配信とイラストをゆるっと更新中！遊びにきてね✦',
   avatar: 'violet',
   bookColor: 'violet',
   bookShape: 'round',
@@ -376,6 +456,61 @@ function ShareProfileCard({ shareUrl }: { shareUrl: string }) {
   )
 }
 
+function Blank({ value }: { value: string }) {
+  return <span className={`blank${value ? '' : ' blank--empty'}`}>{value || '\u3000\u3000'}</span>
+}
+
+function ProfileDetails({ profile }: { profile: Profile }) {
+  const zodiac = zodiacOf(profile.birthMonth, profile.birthDay)
+  const hasBirthday = Boolean(profile.birthMonth || profile.birthDay)
+  const filledFavorites = favoriteOptions.filter((option) => profile.favorites[option.id])
+
+  return (
+    <>
+      {(profile.nickname || hasBirthday || profile.bloodType || profile.personality) && (
+        <div className="fill-lines">
+          {profile.nickname && (
+            <p>みんなには<Blank value={profile.nickname} />ってよばれてるよ</p>
+          )}
+          {hasBirthday && (
+            <p>
+              たんじょう日は<Blank value={profile.birthMonth} />月
+              <Blank value={profile.birthDay} />日{zodiac && <>（{zodiac}座）</>}
+            </p>
+          )}
+          {profile.bloodType && (
+            <p>血液型は<Blank value={profile.bloodType} />型</p>
+          )}
+          {profile.personality && (
+            <p>よく<Blank value={profile.personality} />って言われるよ</p>
+          )}
+        </div>
+      )}
+
+      {filledFavorites.length > 0 && (
+        <div className="favorite-section">
+          <h2 className="favorite-title">♡ MY FAVORITE</h2>
+          <ul className="favorite-grid">
+            {filledFavorites.map((option) => (
+              <li key={option.id}>
+                <span>{option.label}</span>
+                <strong>{profile.favorites[option.id]}</strong>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {profile.freeSpace && (
+        <div className="free-space">
+          <h2>FREE SPACE</h2>
+          <p>{profile.freeSpace}</p>
+        </div>
+      )}
+    </>
+  )
+}
+
 function ProfilePage({ profile }: { profile: Profile }) {
   return (
     <section className={`profile-page page-enter book-theme ${bookStyleClasses(profile)}`}>
@@ -419,6 +554,7 @@ function ProfilePage({ profile }: { profile: Profile }) {
             <dd>{profile.message}</dd>
           </div>
         </dl>
+        <ProfileDetails profile={profile} />
 
         <div className="profile-doodles" aria-hidden="true">
           <span>✦</span><span>♡</span><span>キラキラ</span>
@@ -454,6 +590,10 @@ function EditProfilePage({
 
   const updateField = <K extends keyof Profile>(field: K, value: Profile[K]) => {
     setDraft((current) => ({ ...current, [field]: value }))
+  }
+
+  const updateFavorite = (key: FavoriteKey, value: string) => {
+    setDraft((current) => ({ ...current, favorites: { ...current.favorites, [key]: value } }))
   }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -657,6 +797,98 @@ function EditProfilePage({
             maxLength={120}
             value={draft.message}
             onChange={(event) => updateField('message', event.target.value)}
+          />
+        </label>
+
+        <fieldset className="detail-fields">
+          <legend>もっと知ってもらう（ぜんぶ空でもOK）</legend>
+          <label className="form-field">
+            <span>よばれ方</span>
+            <input
+              maxLength={12}
+              placeholder="例：しぃ、ひろちゃん"
+              value={draft.nickname}
+              onChange={(event) => updateField('nickname', event.target.value)}
+            />
+          </label>
+          <div className="form-field form-field--row">
+            <span>たんじょう日</span>
+            <div className="birthday-select">
+              <select
+                aria-label="誕生月"
+                value={draft.birthMonth}
+                onChange={(event) => updateField('birthMonth', event.target.value)}
+              >
+                <option value="">--</option>
+                {Array.from({ length: 12 }, (_, index) => String(index + 1)).map((month) => (
+                  <option key={month} value={month}>{month}</option>
+                ))}
+              </select>
+              月
+              <select
+                aria-label="誕生日"
+                value={draft.birthDay}
+                onChange={(event) => updateField('birthDay', event.target.value)}
+              >
+                <option value="">--</option>
+                {Array.from({ length: 31 }, (_, index) => String(index + 1)).map((day) => (
+                  <option key={day} value={day}>{day}</option>
+                ))}
+              </select>
+              日
+            </div>
+          </div>
+          <div className="form-field form-field--row">
+            <span>血液型</span>
+            <div className="chip-options">
+              {bloodTypeOptions.map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  className={draft.bloodType === type ? 'selected' : ''}
+                  aria-pressed={draft.bloodType === type}
+                  onClick={() => updateField('bloodType', draft.bloodType === type ? '' : type)}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+          </div>
+          <label className="form-field">
+            <span>よく言われること</span>
+            <input
+              maxLength={16}
+              placeholder="例：マイペース、おっとり"
+              value={draft.personality}
+              onChange={(event) => updateField('personality', event.target.value)}
+            />
+          </label>
+        </fieldset>
+
+        <fieldset className="detail-fields">
+          <legend>♡ MY FAVORITE（書けるところだけでOK）</legend>
+          <div className="favorite-inputs">
+            {favoriteOptions.map((option) => (
+              <label key={option.id} className="form-field">
+                <span>{option.label}</span>
+                <input
+                  maxLength={16}
+                  value={draft.favorites[option.id]}
+                  onChange={(event) => updateFavorite(option.id, event.target.value)}
+                />
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <label className="form-field">
+          <span>フリースペース</span>
+          <textarea
+            rows={3}
+            maxLength={150}
+            placeholder="自由に書いてね"
+            value={draft.freeSpace}
+            onChange={(event) => updateField('freeSpace', event.target.value)}
           />
         </label>
 
@@ -918,6 +1150,7 @@ function PublicProfilePage({ hasReceived }: { hasReceived: boolean }) {
             <dd>{publicProfile.message}</dd>
           </div>
         </dl>
+        <ProfileDetails profile={publicProfile} />
       </article>
 
       <section className="public-sticker-offer">
@@ -1045,8 +1278,34 @@ function ReceivedStickerPage({ hasReceived }: { hasReceived: boolean }) {
   )
 }
 
+const PROFILE_STORAGE_KEY = 'puropera:profile:v1'
+
+function loadProfile(): Profile {
+  try {
+    const raw = localStorage.getItem(PROFILE_STORAGE_KEY)
+    if (!raw) return initialProfile
+    const saved = JSON.parse(raw) as Partial<Profile>
+    return {
+      ...initialProfile,
+      ...saved,
+      favorites: { ...emptyFavorites, ...saved.favorites },
+    }
+  } catch {
+    return initialProfile
+  }
+}
+
 function App() {
-  const [profile, setProfile] = useState(initialProfile)
+  const [profile, setProfile] = useState(loadProfile)
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile))
+    } catch {
+      // 容量オーバーやプライベートモードでは保存をあきらめる
+    }
+  }, [profile])
+
   const [mySticker, setMySticker] = useState<Sticker | null>(null)
   const [receivedStickers, setReceivedStickers] = useState<Sticker[]>([])
   const hasReceivedPublicSticker = receivedStickers.some(
