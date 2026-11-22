@@ -32,6 +32,8 @@ type FreeFrame = 'round' | 'photo' | 'stitch'
 type FontStyle = 'standard' | 'pop' | 'maru' | 'soft' | 'hand' | 'kiwi'
 type DecorSet = 'none' | 'sweets' | 'sky' | 'cute' | 'animals'
 
+type AnswerKey = 'subject' | 'talent' | 'dream' | 'hamari' | 'word' | 'treasure' | 'from' | 'next'
+
 type BloodType = '' | 'A' | 'B' | 'O' | 'AB'
 
 type Profile = {
@@ -46,6 +48,7 @@ type Profile = {
   bloodType: BloodType
   personality: string
   favorites: Record<FavoriteKey, string>
+  answers: Record<AnswerKey, string>
   freeSpace: string
   favoriteShape: FavoriteShape
   questionStyle: QuestionStyle
@@ -143,6 +146,21 @@ const favoriteShapePaths: Record<FavoriteShape, string> = {
   bubble: 'M14 4h72a10 10 0 0 1 10 10v46a10 10 0 0 1-10 10H62L50 88 38 70H14A10 10 0 0 1 4 60V14A10 10 0 0 1 14 4Z',
 }
 
+const answerQuestions: { id: AnswerKey; label: string; placeholder: string }[] = [
+  { id: 'subject', label: 'すきな教科', placeholder: '例：体育、図工' },
+  { id: 'talent', label: 'とくぎ', placeholder: '例：はやくちことば' },
+  { id: 'dream', label: 'しょうらいのゆめ', placeholder: '例：パティシエ' },
+  { id: 'hamari', label: 'いまハマってること', placeholder: '例：ゲーム、お菓子づくり' },
+  { id: 'word', label: 'すきなことば', placeholder: '例：なんとかなる！' },
+  { id: 'treasure', label: 'たからもの', placeholder: '例：友だちからの手紙' },
+  { id: 'from', label: 'まわしてくれた人', placeholder: '例：ひなちゃん' },
+  { id: 'next', label: 'つぎにまわしたい人', placeholder: '例：みおちゃん' },
+]
+
+const emptyAnswers: Record<AnswerKey, string> = {
+  subject: '', talent: '', dream: '', hamari: '', word: '', treasure: '', from: '', next: '',
+}
+
 const bloodTypeOptions: BloodType[] = ['A', 'B', 'O', 'AB']
 
 const emptyFavorites: Record<FavoriteKey, string> = {
@@ -187,6 +205,7 @@ const initialProfile: Profile = {
   bloodType: '',
   personality: '',
   favorites: { ...emptyFavorites, drink: 'クリームソーダ', game: 'リズムゲーム', music: 'ゲーム音楽' },
+  answers: { ...emptyAnswers },
   freeSpace: '',
   favoriteShape: 'heart',
   questionStyle: 'note',
@@ -263,6 +282,17 @@ const publicProfile: Profile = {
     game: 'リズムゲーム',
     music: 'ゲーム音楽',
     hobby: 'イラスト・星空さんぽ',
+  },
+  answers: {
+    ...emptyAnswers,
+    subject: '図工と音楽',
+    talent: 'ものまね',
+    dream: 'ゲームをつくる人',
+    hamari: 'リズムゲーム',
+    word: 'なんとかなる！',
+    treasure: '友だちとのプリクラ',
+    from: 'ひなちゃん',
+    next: 'みおちゃん',
   },
   freeSpace: 'ゲーム配信とイラストをゆるっと更新中！遊びにきてね✦',
   favoriteShape: 'heart',
@@ -549,72 +579,249 @@ function ShareProfileCard({ shareUrl }: { shareUrl: string }) {
 }
 
 function Blank({ value }: { value: string }) {
-  return <span className={`blank${value ? '' : ' blank--empty'}`}>{value || '\u3000\u3000'}</span>
+  return <span className={`blank${value ? '' : ' blank--empty'}`}>{value || '　　'}</span>
+}
+
+function QuestionLines({ profile }: { profile: Profile }) {
+  const zodiac = zodiacOf(profile.birthMonth, profile.birthDay)
+  const hasBirthday = Boolean(profile.birthMonth || profile.birthDay)
+  if (!(profile.nickname || hasBirthday || profile.bloodType || profile.personality)) return null
+
+  return (
+    <div className={`fill-lines fill-lines--${profile.questionStyle}`}>
+      <h2 className="deco-title">
+        <DecorIcon set={profile.decorSet} index={2} className="decor-icon--title" />
+        じこしょうかい
+        <DecorIcon set={profile.decorSet} index={3} className="decor-icon--title" />
+      </h2>
+      {profile.nickname && (
+        <p><i aria-hidden="true">♡</i>みんなには<Blank value={profile.nickname} />ってよばれてるよ</p>
+      )}
+      {hasBirthday && (
+        <p>
+          <i aria-hidden="true">☾</i>たんじょう日は<Blank value={profile.birthMonth} />月
+          <Blank value={profile.birthDay} />日{zodiac && <>（{zodiac}座）</>}
+        </p>
+      )}
+      {profile.bloodType && (
+        <p><i aria-hidden="true">✚</i>血液型は<Blank value={profile.bloodType} />型</p>
+      )}
+      {profile.personality && (
+        <p><i aria-hidden="true">☆</i>よく<Blank value={profile.personality} />って言われるよ</p>
+      )}
+    </div>
+  )
+}
+
+function FavoriteHearts({ profile }: { profile: Profile }) {
+  const filledFavorites = favoriteOptions.filter((option) => profile.favorites[option.id])
+  if (filledFavorites.length === 0) return null
+
+  return (
+    <div className="favorite-section">
+      <h2 className="deco-title deco-title--ribbon">
+        <DecorIcon set={profile.decorSet} index={0} className="decor-icon--ribbon decor-icon--left" />
+        MY FAVORITE
+        <DecorIcon set={profile.decorSet} index={1} className="decor-icon--ribbon decor-icon--right" />
+      </h2>
+      <ul className={`favorite-grid favorite-grid--${profile.favoriteShape}`}>
+        {filledFavorites.map((option) => (
+          <li key={option.id}>
+            <svg viewBox="0 0 100 92" aria-hidden="true" preserveAspectRatio="none">
+              <path d={favoriteShapePaths[profile.favoriteShape]} />
+            </svg>
+            <span className="favorite-label">★ {option.label} ★</span>
+            <strong>{profile.favorites[option.id]}</strong>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function ExtraAnswers({ profile }: { profile: Profile }) {
+  const filled = answerQuestions.filter(
+    (question) => profile.answers[question.id] && question.id !== 'from' && question.id !== 'next',
+  )
+  const { from, next } = profile.answers
+  if (filled.length === 0 && !from && !next) return null
+
+  return (
+    <div className="extra-answers">
+      {filled.length > 0 && (
+        <ul className="qa-list">
+          {filled.map((question) => (
+            <li key={question.id} className="qa-row">
+              <span className="qa-label">{question.label}</span>
+              <span className="qa-answer">{profile.answers[question.id]}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {(from || next) && (
+        <div className="pass-around">
+          <small>♡ プロフ帳のまわし先 ♡</small>
+          <div className="pass-chain">
+            <span className="pass-name">{from || '？？？'}</span>
+            <i aria-hidden="true">➜</i>
+            <span className="pass-name pass-name--me">♡わたし♡</span>
+            <i aria-hidden="true">➜</i>
+            <span className="pass-name">{next || '？？？'}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function FreeSpaceBox({ profile }: { profile: Profile }) {
+  if (!profile.freeSpace) return null
+  return (
+    <div className={`free-space free-space--${profile.freeFrame}`}>
+      <div className="free-space-inner">
+        <h2>✧ FREE SPACE ✧</h2>
+        <p>{profile.freeSpace}</p>
+      </div>
+      <DecorIcon set={profile.decorSet} index={0} className="decor-icon--corner" />
+    </div>
+  )
 }
 
 function ProfileDetails({ profile }: { profile: Profile }) {
-  const zodiac = zodiacOf(profile.birthMonth, profile.birthDay)
-  const hasBirthday = Boolean(profile.birthMonth || profile.birthDay)
-  const filledFavorites = favoriteOptions.filter((option) => profile.favorites[option.id])
-
   return (
     <>
-      {(profile.nickname || hasBirthday || profile.bloodType || profile.personality) && (
-        <div className={`fill-lines fill-lines--${profile.questionStyle}`}>
-          <h2 className="deco-title">
-            <DecorIcon set={profile.decorSet} index={2} className="decor-icon--title" />
-            ひみつのしつもん
-            <DecorIcon set={profile.decorSet} index={3} className="decor-icon--title" />
-          </h2>
-          {profile.nickname && (
-            <p><i aria-hidden="true">♡</i>みんなには<Blank value={profile.nickname} />ってよばれてるよ</p>
-          )}
-          {hasBirthday && (
-            <p>
-              <i aria-hidden="true">☾</i>たんじょう日は<Blank value={profile.birthMonth} />月
-              <Blank value={profile.birthDay} />日{zodiac && <>（{zodiac}座）</>}
-            </p>
-          )}
-          {profile.bloodType && (
-            <p><i aria-hidden="true">✚</i>血液型は<Blank value={profile.bloodType} />型</p>
-          )}
-          {profile.personality && (
-            <p><i aria-hidden="true">☆</i>よく<Blank value={profile.personality} />って言われるよ</p>
-          )}
-        </div>
-      )}
-
-      {filledFavorites.length > 0 && (
-        <div className="favorite-section">
-          <h2 className="deco-title deco-title--ribbon">
-            <DecorIcon set={profile.decorSet} index={0} className="decor-icon--ribbon decor-icon--left" />
-            MY FAVORITE
-            <DecorIcon set={profile.decorSet} index={1} className="decor-icon--ribbon decor-icon--right" />
-          </h2>
-          <ul className={`favorite-grid favorite-grid--${profile.favoriteShape}`}>
-            {filledFavorites.map((option) => (
-              <li key={option.id}>
-                <svg viewBox="0 0 100 92" aria-hidden="true" preserveAspectRatio="none">
-                  <path d={favoriteShapePaths[profile.favoriteShape]} />
-                </svg>
-                <span className="favorite-label">★ {option.label} ★</span>
-                <strong>{profile.favorites[option.id]}</strong>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {profile.freeSpace && (
-        <div className={`free-space free-space--${profile.freeFrame}`}>
-          <div className="free-space-inner">
-            <h2>✧ FREE SPACE ✧</h2>
-            <p>{profile.freeSpace}</p>
-          </div>
-          <DecorIcon set={profile.decorSet} index={0} className="decor-icon--corner" />
-        </div>
-      )}
+      <QuestionLines profile={profile} />
+      <FavoriteHearts profile={profile} />
+      <ExtraAnswers profile={profile} />
+      <FreeSpaceBox profile={profile} />
     </>
+  )
+}
+
+const pageMeta = [
+  { eyebrow: 'PROFILE', title: 'ぷろふぃーる' },
+  { eyebrow: 'FAVORITE', title: 'すきなものだらけ' },
+  { eyebrow: 'TALK', title: 'もっと知りたい' },
+]
+
+function ProfileBook({ profile, isPublic = false }: { profile: Profile; isPublic?: boolean }) {
+  const [page, setPage] = useState(0)
+  const [direction, setDirection] = useState<'next' | 'prev'>('next')
+  const [hasFlipped, setHasFlipped] = useState(false)
+  const touchStartX = useRef<number | null>(null)
+  const lastPage = pageMeta.length - 1
+
+  const goTo = (target: number) => {
+    if (target < 0 || target > lastPage || target === page) return
+    setDirection(target > page ? 'next' : 'prev')
+    setPage(target)
+    setHasFlipped(true)
+  }
+
+  const handleTouchEnd = (clientX: number) => {
+    if (touchStartX.current === null) return
+    const diff = clientX - touchStartX.current
+    touchStartX.current = null
+    if (Math.abs(diff) < 50) return
+    goTo(diff < 0 ? page + 1 : page - 1)
+  }
+
+  return (
+    <article
+      className={`open-book heisei-book ${bookStyleClasses(profile)}${isPublic ? ' public-book' : ''}`}
+      onTouchStart={(event) => { touchStartX.current = event.touches[0].clientX }}
+      onTouchEnd={(event) => handleTouchEnd(event.changedTouches[0].clientX)}
+    >
+      <div className="book-spine" aria-hidden="true" />
+      <span className="washi washi--a" aria-hidden="true" />
+      <span className="washi washi--b" aria-hidden="true" />
+
+      <div key={page} className={`book-page book-page--${direction}`}>
+        <header className="page-banner">
+          <small>{pageMeta[page].eyebrow}</small>
+          <h2>{pageMeta[page].title}<span aria-hidden="true">♡</span></h2>
+        </header>
+
+        {page === 0 && (
+          <>
+            <div className="book-decor" aria-hidden="true">
+              <DecorIcon set={profile.decorSet} index={1} className="decor-icon--float-a" />
+              <DecorIcon set={profile.decorSet} index={2} className="decor-icon--float-b" />
+            </div>
+            <div className="profile-top">
+              <div className="profile-photo">
+                <Avatar
+                  avatar={profile.avatar}
+                  imageSrc={profile.customAvatar}
+                  label={isPublic ? `${profile.displayName}の仮アイコン` : `${profile.displayName}のアイコン`}
+                />
+                <span className="photo-tape" aria-hidden="true" />
+                <span className="puri-label" aria-hidden="true">♡ ぷりくら ♡</span>
+              </div>
+              <div className="name-block">
+                <span>なまえ</span>
+                <strong>{profile.displayName}</strong>
+                <em>{profile.accountId}</em>
+              </div>
+            </div>
+            <QuestionLines profile={profile} />
+            <ul className="qa-list">
+              <li className="qa-row">
+                <span className="qa-label">♡ すきなもの</span>
+                <span className="qa-answer">{profile.likes}</span>
+              </li>
+              <li className="qa-row">
+                <span className="qa-label">☆ 活動内容</span>
+                <span className="qa-answer">{profile.activity}</span>
+              </li>
+              <li className="qa-row">
+                <span className="qa-label">✎ ひとこと</span>
+                <span className="qa-answer">{profile.message}</span>
+              </li>
+            </ul>
+          </>
+        )}
+
+        {page === 1 && (
+          <FavoriteHearts profile={profile} />
+        )}
+
+        {page === 2 && (
+          <>
+            <ExtraAnswers profile={profile} />
+            <FreeSpaceBox profile={profile} />
+          </>
+        )}
+      </div>
+
+      <nav className="page-nav" aria-label="ページをめくる">
+        <button type="button" onClick={() => goTo(page - 1)} disabled={page === 0} aria-label="まえのページ">‹</button>
+        <div className="page-dots">
+          {pageMeta.map((meta, index) => (
+            <button
+              key={meta.eyebrow}
+              type="button"
+              className={index === page ? 'selected' : ''}
+              onClick={() => goTo(index)}
+              aria-label={`${index + 1}ページ目`}
+              aria-current={index === page}
+            >
+              ♥
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          className={!hasFlipped ? 'nudge' : ''}
+          onClick={() => goTo(page + 1)}
+          disabled={page === lastPage}
+          aria-label="つぎのページ"
+        >
+          ›
+        </button>
+      </nav>
+      <span className="page-number" aria-hidden="true">p.{page + 1}</span>
+    </article>
   )
 }
 
@@ -629,48 +836,7 @@ function ProfilePage({ profile }: { profile: Profile }) {
         <Link className="mini-action" to="/profile/edit">✎ 編集</Link>
       </div>
 
-      <article className={`open-book ${bookStyleClasses(profile)}`}>
-        <div className="book-spine" aria-hidden="true" />
-        <div className="book-decor" aria-hidden="true">
-          <DecorIcon set={profile.decorSet} index={1} className="decor-icon--float-a" />
-          <DecorIcon set={profile.decorSet} index={2} className="decor-icon--float-b" />
-        </div>
-        <div className="profile-top">
-          <div className="profile-photo">
-            <Avatar
-              avatar={profile.avatar}
-              imageSrc={profile.customAvatar}
-              label={`${profile.displayName}のアイコン`}
-            />
-            <span className="photo-tape" aria-hidden="true" />
-          </div>
-          <div className="name-block">
-            <span>なまえ</span>
-            <strong>{profile.displayName}</strong>
-            <em>{profile.accountId}</em>
-          </div>
-        </div>
-
-        <dl className="profile-fields">
-          <div>
-            <dt><span>♡</span> すきなもの</dt>
-            <dd>{profile.likes}</dd>
-          </div>
-          <div>
-            <dt><span>☆</span> 活動内容</dt>
-            <dd>{profile.activity}</dd>
-          </div>
-          <div className="message-field">
-            <dt><span>✎</span> ひとこと</dt>
-            <dd>{profile.message}</dd>
-          </div>
-        </dl>
-        <ProfileDetails profile={profile} />
-
-        <div className="profile-doodles" aria-hidden="true">
-          <span>✦</span><span>♡</span><span>キラキラ</span>
-        </div>
-      </article>
+      <ProfileBook profile={profile} />
 
       <div className="profile-actions">
         <Link className="primary-button" to="/stickers">
@@ -705,6 +871,10 @@ function EditProfilePage({
 
   const updateFavorite = (key: FavoriteKey, value: string) => {
     setDraft((current) => ({ ...current, favorites: { ...current.favorites, [key]: value } }))
+  }
+
+  const updateAnswer = (key: AnswerKey, value: string) => {
+    setDraft((current) => ({ ...current, answers: { ...current.answers, [key]: value } }))
   }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -1002,6 +1172,21 @@ function EditProfilePage({
             onChange={(event) => updateField('freeSpace', event.target.value)}
           />
         </label>
+
+        <fieldset className="detail-fields">
+          <legend>✎ もっと書く（平成プロフ帳）</legend>
+          {answerQuestions.map((question) => (
+            <label key={question.id} className="form-field">
+              <span>{question.label}</span>
+              <input
+                maxLength={20}
+                placeholder={question.placeholder}
+                value={draft.answers[question.id]}
+                onChange={(event) => updateAnswer(question.id, event.target.value)}
+              />
+            </label>
+          ))}
+        </fieldset>
 
         <fieldset className="detail-fields detail-style">
           <legend>✦ デザインをえらぶ</legend>
@@ -1305,40 +1490,7 @@ function PublicProfilePage({ hasReceived }: { hasReceived: boolean }) {
         <span className="page-number">♡</span>
       </div>
 
-      <article className={`open-book public-book ${bookStyleClasses(publicProfile)}`}>
-        <div className="book-spine" aria-hidden="true" />
-        <div className="book-decor" aria-hidden="true">
-          <DecorIcon set={publicProfile.decorSet} index={1} className="decor-icon--float-a" />
-          <DecorIcon set={publicProfile.decorSet} index={2} className="decor-icon--float-b" />
-        </div>
-        <div className="profile-top">
-          <div className="profile-photo">
-            <Avatar avatar={publicProfile.avatar} label={`${publicProfile.displayName}の仮アイコン`} />
-            <span className="photo-tape" aria-hidden="true" />
-          </div>
-          <div className="name-block">
-            <span>なまえ</span>
-            <strong>{publicProfile.displayName}</strong>
-            <em>{publicProfile.accountId}</em>
-          </div>
-        </div>
-
-        <dl className="profile-fields">
-          <div>
-            <dt><span>♡</span> すきなもの</dt>
-            <dd>{publicProfile.likes}</dd>
-          </div>
-          <div>
-            <dt><span>☆</span> 活動内容</dt>
-            <dd>{publicProfile.activity}</dd>
-          </div>
-          <div className="message-field">
-            <dt><span>✎</span> ひとこと</dt>
-            <dd>{publicProfile.message}</dd>
-          </div>
-        </dl>
-        <ProfileDetails profile={publicProfile} />
-      </article>
+      <ProfileBook profile={publicProfile} isPublic />
 
       <section className="public-sticker-offer">
         <div>
@@ -1476,6 +1628,7 @@ function loadProfile(): Profile {
       ...initialProfile,
       ...saved,
       favorites: { ...emptyFavorites, ...saved.favorites },
+      answers: { ...emptyAnswers, ...saved.answers },
     }
   } catch {
     return initialProfile
