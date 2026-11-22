@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type CSSProperties, type FormEvent } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import '@fontsource/mochiy-pop-one/400.css'
@@ -69,6 +69,22 @@ type Profile = {
   bookColor: BookColor
   bookShape: BookShape
   bookPattern: BookPattern
+}
+
+type Placement = {
+  id: number
+  stickerId: number
+  x: number
+  y: number
+  rot: number
+  size: number
+}
+
+type GuestNote = {
+  id: number
+  name: string
+  text: string
+  symbol: string
 }
 
 type Sticker = {
@@ -426,6 +442,43 @@ const publicSticker: Sticker = {
 
 const MY_STICKER_ID = 1000
 
+const seedGuestNotes: GuestNote[] = [
+  { id: 1, name: 'さくら', text: 'いつも配信たのしみ！これからもよろしくね♡', symbol: 'cherry-blossom' },
+  { id: 2, name: 'ゆうな', text: 'おそろいのいちご、うれしかった〜！', symbol: 'strawberry' },
+  { id: 3, name: 'そら', text: '今度いっしょにゲームしよ☆', symbol: 'glowing-star' },
+]
+
+const demoPlacements: Placement[] = [
+  { id: 1, stickerId: 3, x: 90, y: 24, rot: 14, size: 58 },
+  { id: 2, stickerId: 2, x: 9, y: 49, rot: -12, size: 62 },
+  { id: 3, stickerId: 1, x: 91, y: 58, rot: 10, size: 64 },
+  { id: 4, stickerId: 5, x: 86, y: 86, rot: -8, size: 68 },
+  { id: 5, stickerId: 4, x: 11, y: 95, rot: 8, size: 60 },
+]
+
+const clamp = (value: number, min = 4, max = 96) => Math.min(max, Math.max(min, value))
+
+function usePersistentState<T>(key: string, initial: T) {
+  const [value, setValue] = useState<T>(() => {
+    try {
+      const raw = localStorage.getItem(key)
+      return raw ? (JSON.parse(raw) as T) : initial
+    } catch {
+      return initial
+    }
+  })
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(key, JSON.stringify(value))
+    } catch {
+      // 保存できない環境では何もしない
+    }
+  }, [key, value])
+
+  return [value, setValue] as const
+}
+
 function accountSlug(accountId: string) {
   return accountId.replace(/^@/, '').trim().toLowerCase() || 'hinata'
 }
@@ -698,7 +751,15 @@ function Pill({ value, wide = false }: { value: string; wide?: boolean }) {
   return <span className={`sh-pill${wide ? ' sh-pill--wide' : ''}`}>{value}</span>
 }
 
-function ProfileSheet({ profile, isPublic = false }: { profile: Profile; isPublic?: boolean }) {
+function ProfileSheet({
+  profile,
+  isPublic = false,
+  overlay,
+}: {
+  profile: Profile
+  isPublic?: boolean
+  overlay?: React.ReactNode
+}) {
   const a = profile.answers
   const zodiac = zodiacOf(profile.birthMonth, profile.birthDay)
   const hasBirthday = Boolean(profile.birthMonth || profile.birthDay)
@@ -888,11 +949,224 @@ function ProfileSheet({ profile, isPublic = false }: { profile: Profile; isPubli
       )}
 
       <p className="sh-foot">✿ ぷろぺた ✿</p>
+      {overlay}
     </article>
   )
 }
 
-function ProfilePage({ profile }: { profile: Profile }) {
+function Confetti({ count = 40 }: { count?: number }) {
+  return (
+    <div className="confetti" aria-hidden="true">
+      {Array.from({ length: count }, (_, index) => (
+        <i key={index} style={{ '--i': index } as CSSProperties} />
+      ))}
+    </div>
+  )
+}
+
+const openedCovers = new Set<string>()
+
+function CoverGate({ profile, coverKey, children }: { profile: Profile; coverKey: string; children: React.ReactNode }) {
+  const [state, setState] = useState<'closed' | 'opening' | 'open'>(
+    openedCovers.has(coverKey) ? 'open' : 'closed',
+  )
+
+  const open = () => {
+    if (state !== 'closed') return
+    setState('opening')
+    window.setTimeout(() => {
+      openedCovers.add(coverKey)
+      setState('open')
+    }, 950)
+  }
+
+  if (state === 'open') return <>{children}</>
+
+  return (
+    <button
+      type="button"
+      className={`cover-gate ${bookStyleClasses(profile)}${state === 'opening' ? ' cover-gate--opening' : ''}`}
+      onClick={open}
+      aria-label="プロフィール帳をひらく"
+    >
+      <span className="cover-gate-card">
+        <span className="cover-gate-spine" aria-hidden="true" />
+        <DecorIcon set={profile.decorSet} index={0} className="decor-icon--cover-a" />
+        <DecorIcon set={profile.decorSet} index={1} className="decor-icon--cover-b" />
+        <DecorIcon set={profile.decorSet} index={2} className="decor-icon--cover-c" />
+        <small>PROFILE BOOK</small>
+        <strong className="sheet-script">my profile</strong>
+        <em>{profile.displayName}</em>
+        <span className="cover-gate-hint">タップしてひらく ✦</span>
+      </span>
+    </button>
+  )
+}
+
+function PlacedLayer({
+  placements,
+  stickers,
+  editing = false,
+  selectedId = null,
+  onSelect,
+  onMove,
+}: {
+  placements: Placement[]
+  stickers: Sticker[]
+  editing?: boolean
+  selectedId?: number | null
+  onSelect?: (id: number) => void
+  onMove?: (id: number, x: number, y: number) => void
+}) {
+  const layerRef = useRef<HTMLDivElement>(null)
+  const dragId = useRef<number | null>(null)
+
+  const handleMove = (event: React.PointerEvent) => {
+    if (!editing || dragId.current === null || !layerRef.current) return
+    const rect = layerRef.current.getBoundingClientRect()
+    onMove?.(
+      dragId.current,
+      clamp(((event.clientX - rect.left) / rect.width) * 100),
+      clamp(((event.clientY - rect.top) / rect.height) * 100),
+    )
+  }
+
+  return (
+    <div
+      ref={layerRef}
+      className={`placed-layer${editing ? ' placed-layer--edit' : ''}`}
+      onPointerMove={handleMove}
+      onPointerUp={() => { dragId.current = null }}
+      onPointerCancel={() => { dragId.current = null }}
+    >
+      {placements.map((placement) => {
+        const sticker = stickers.find((item) => item.id === placement.stickerId)
+        if (!sticker) return null
+        return (
+          <button
+            key={placement.id}
+            type="button"
+            tabIndex={editing ? 0 : -1}
+            aria-label={`${sticker.name}のシール`}
+            className={`placed${editing && selectedId === placement.id ? ' placed--selected' : ''}`}
+            style={{
+              left: `${placement.x}%`,
+              top: `${placement.y}%`,
+              width: placement.size,
+              height: placement.size,
+              transform: `translate(-50%, -50%) rotate(${placement.rot}deg)`,
+            }}
+            onPointerDown={(event) => {
+              if (!editing) return
+              event.currentTarget.setPointerCapture(event.pointerId)
+              dragId.current = placement.id
+              onSelect?.(placement.id)
+            }}
+          >
+            <StickerFace symbol={sticker.symbol} />
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function GuestBook({ notes, onAdd }: { notes: GuestNote[]; onAdd?: (note: GuestNote) => void }) {
+  const [name, setName] = useState('')
+  const [text, setText] = useState('')
+  const [symbol, setSymbol] = useState('pink-heart')
+  const [sent, setSent] = useState(false)
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!onAdd || !text.trim()) return
+    onAdd({ id: Date.now(), name: name.trim() || 'ともだち', text: text.trim(), symbol })
+    setText('')
+    setSent(true)
+    window.setTimeout(() => setSent(false), 2600)
+  }
+
+  return (
+    <section className="guestbook">
+      <h2><small>みんなのひとこと</small><span className="sheet-script">messages</span></h2>
+      {notes.length > 0 && (
+        <ul className="guest-notes">
+          {notes.map((note) => (
+            <li key={note.id}>
+              <StickerFace symbol={note.symbol} />
+              <p>{note.text}</p>
+              <small>from {note.name}</small>
+            </li>
+          ))}
+        </ul>
+      )}
+      {onAdd && (
+        <form className="guest-form" onSubmit={handleSubmit}>
+          <strong>ひとこと書いていってね ✎</strong>
+          <input maxLength={10} placeholder="なまえ（ニックネームOK）" value={name} onChange={(event) => setName(event.target.value)} />
+          <textarea required rows={2} maxLength={40} placeholder="例：仲良くしてね！" value={text} onChange={(event) => setText(event.target.value)} />
+          <div className="guest-symbols" role="group" aria-label="そえるシール">
+            {['pink-heart', 'strawberry', 'glowing-star', 'cat-face', 'rainbow', 'cherry-blossom'].map((id) => (
+              <button key={id} type="button" className={symbol === id ? 'selected' : ''} aria-pressed={symbol === id} onClick={() => setSymbol(id)}>
+                <StickerFace symbol={id} />
+              </button>
+            ))}
+          </div>
+          <button className="primary-button" type="submit"><span>ぺたっと書きこむ</span><span aria-hidden="true">✦</span></button>
+          {sent && <p className="guest-sent" role="status">書きこんだよ！ありがとう♡</p>}
+        </form>
+      )}
+      {sent && <Confetti count={28} />}
+    </section>
+  )
+}
+
+function ProfilePage({
+  profile,
+  stickers,
+  placements,
+  onPlacementsChange,
+  notes,
+}: {
+  profile: Profile
+  stickers: Sticker[]
+  placements: Placement[]
+  onPlacementsChange: (placements: Placement[]) => void
+  notes: GuestNote[]
+}) {
+  const [editing, setEditing] = useState(false)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const sheetRef = useRef<HTMLDivElement>(null)
+  const selected = placements.find((item) => item.id === selectedId)
+
+  const addSticker = (sticker: Sticker) => {
+    let y = 50
+    const element = sheetRef.current
+    if (element) {
+      const rect = element.getBoundingClientRect()
+      y = clamp(((window.innerHeight * 0.4 - rect.top) / rect.height) * 100, 6, 94)
+    }
+    const placement: Placement = {
+      id: Date.now(),
+      stickerId: sticker.id,
+      x: 50 + Math.round(Math.random() * 30 - 15),
+      y,
+      rot: Math.round(Math.random() * 30 - 15),
+      size: 72,
+    }
+    onPlacementsChange([...placements, placement])
+    setSelectedId(placement.id)
+  }
+
+  const updateSelected = (patch: Partial<Placement>) => {
+    onPlacementsChange(placements.map((item) => (item.id === selectedId ? { ...item, ...patch } : item)))
+  }
+
+  const removeSelected = () => {
+    onPlacementsChange(placements.filter((item) => item.id !== selectedId))
+    setSelectedId(null)
+  }
+
   return (
     <section className={`profile-page page-enter book-theme ${bookStyleClasses(profile)}`}>
       <div className="page-heading">
@@ -903,20 +1177,66 @@ function ProfilePage({ profile }: { profile: Profile }) {
         <Link className="mini-action" to="/profile/edit">✎ 編集</Link>
       </div>
 
-      <ProfileSheet profile={profile} />
+      <CoverGate profile={profile} coverKey="mine">
+        <button
+          type="button"
+          className={`paste-toggle${editing ? ' on' : ''}`}
+          onClick={() => { setEditing((current) => !current); setSelectedId(null) }}
+        >
+          {editing ? '✓ 貼りおわり' : '✦ シールを貼る'}
+        </button>
+        <div ref={sheetRef}>
+          <ProfileSheet
+            profile={profile}
+            overlay={(
+              <PlacedLayer
+                placements={placements}
+                stickers={stickers}
+                editing={editing}
+                selectedId={selectedId}
+                onSelect={setSelectedId}
+                onMove={(id, x, y) => onPlacementsChange(placements.map((item) => (item.id === id ? { ...item, x, y } : item)))}
+              />
+            )}
+          />
+        </div>
 
-      <div className="profile-actions">
-        <Link className="primary-button" to="/stickers">
-          <span>シール帳を見る</span>
-          <span aria-hidden="true">›</span>
-        </Link>
-        <Link className="secondary-button" to="/stickers/create">
-          <span aria-hidden="true">✦</span>
-          配るシールをつくる
-        </Link>
-      </div>
-      <ShareProfileCard shareUrl={publicProfileUrl(profile.accountId)} />
-      <p className="page-hint">プロフィールの内容は「編集」から書きかえられるよ</p>
+        {editing && (
+          <div className="sticker-tray">
+            <p>{selected ? 'ドラッグで動かせるよ' : 'シールをタップして貼ろう'}</p>
+            <div className="tray-row">
+              {stickers.map((sticker) => (
+                <button key={sticker.id} type="button" onClick={() => addSticker(sticker)} aria-label={`${sticker.name}を貼る`}>
+                  <StickerFace symbol={sticker.symbol} />
+                </button>
+              ))}
+            </div>
+            {selected && (
+              <div className="tray-tools">
+                <button type="button" onClick={() => updateSelected({ size: Math.min(120, selected.size + 10) })}>大きく</button>
+                <button type="button" onClick={() => updateSelected({ size: Math.max(36, selected.size - 10) })}>小さく</button>
+                <button type="button" onClick={() => updateSelected({ rot: selected.rot + 15 })}>回す ↻</button>
+                <button type="button" onClick={removeSelected}>はがす</button>
+              </div>
+            )}
+          </div>
+        )}
+
+        <GuestBook notes={notes} />
+
+        <div className="profile-actions">
+          <Link className="primary-button" to="/stickers">
+            <span>シール帳を見る</span>
+            <span aria-hidden="true">›</span>
+          </Link>
+          <Link className="secondary-button" to="/stickers/create">
+            <span aria-hidden="true">✦</span>
+            配るシールをつくる
+          </Link>
+        </div>
+        <ShareProfileCard shareUrl={publicProfileUrl(profile.accountId)} />
+        <p className="page-hint">プロフィールの内容は「編集」から書きかえられるよ</p>
+      </CoverGate>
     </section>
   )
 }
@@ -966,6 +1286,20 @@ function EditProfilePage({
     setDraft((current) => ({ ...current, answers: { ...current.answers, [key]: value } }))
   }
 
+  const progressChecks = [
+    draft.nickname, draft.birthMonth && draft.birthDay, draft.bloodType, draft.personality,
+    draft.likes, draft.activity, draft.message, draft.freeSpace,
+    ...Object.values(draft.favorites), ...Object.values(draft.answers), ...Object.values(draft.which),
+  ]
+  const progressDone = progressChecks.filter(Boolean).length
+  const progressPercent = Math.round((progressDone / progressChecks.length) * 100)
+  const progressMessage =
+    progressPercent >= 100 ? 'コンプリート！！ぜんぶ書けたね🎉'
+      : progressPercent >= 70 ? 'あとちょっと！ゴールが見えてきた✨'
+        : progressPercent >= 40 ? 'もう半分こえた！いい感じ♪'
+          : progressPercent >= 10 ? 'いいスタート！すきなものから書こう'
+            : 'まずは「すきなもの」から書いてみよう'
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const normalizedId = draft.accountId.startsWith('@') ? draft.accountId : `@${draft.accountId}`
@@ -1006,6 +1340,19 @@ function EditProfilePage({
       </div>
 
       <form className="notebook-form" onSubmit={handleSubmit}>
+        <div className="progress-card" role="status">
+          <div className="progress-top">
+            <strong>できあがり {progressPercent}%</strong>
+            <span aria-hidden="true">
+              {[25, 50, 75, 100].map((mark) => (
+                <i key={mark} className={progressPercent >= mark ? 'got' : ''}>★</i>
+              ))}
+            </span>
+          </div>
+          <div className="progress-bar"><span style={{ width: `${progressPercent}%` }} /></div>
+          <p>{progressMessage}</p>
+        </div>
+        {progressPercent >= 100 && <Confetti />}
         <button type="button" className="demo-fill" onClick={fillDemo}>
           ✨ デモの内容で全部うめてみる
         </button>
@@ -1608,7 +1955,15 @@ function CreateStickerPage({ onSave }: { onSave: (sticker: Sticker) => void }) {
   )
 }
 
-function PublicProfilePage({ hasReceived }: { hasReceived: boolean }) {
+function PublicProfilePage({
+  hasReceived,
+  notes,
+  onAddNote,
+}: {
+  hasReceived: boolean
+  notes: GuestNote[]
+  onAddNote: (note: GuestNote) => void
+}) {
   return (
     <section className={`public-profile-page page-enter book-theme ${bookStyleClasses(publicProfile)}`}>
       <div className="visitor-ribbon">
@@ -1623,7 +1978,13 @@ function PublicProfilePage({ hasReceived }: { hasReceived: boolean }) {
         <span className="page-number">♡</span>
       </div>
 
-      <ProfileSheet profile={publicProfile} isPublic />
+      <CoverGate profile={publicProfile} coverKey="public">
+        <ProfileSheet
+          profile={publicProfile}
+          isPublic
+          overlay={<PlacedLayer placements={demoPlacements} stickers={defaultStickers} />}
+        />
+        <GuestBook notes={notes} onAdd={onAddNote} />
 
       <section className="public-sticker-offer">
         <div>
@@ -1643,6 +2004,7 @@ function PublicProfilePage({ hasReceived }: { hasReceived: boolean }) {
         <span aria-hidden="true">›</span>
       </Link>
       <p className="page-hint">ログインなしで体験できるデモページです</p>
+      </CoverGate>
     </section>
   )
 }
@@ -1731,6 +2093,7 @@ function ReceivedStickerPage({ hasReceived }: { hasReceived: boolean }) {
         </div>
       </div>
 
+      {!isDuplicate && <Confetti />}
       <div className="received-message" role="status">
         <span className="received-icon">{isDuplicate ? '✓' : '✿'}</span>
         <p className="eyebrow">{isDuplicate ? 'ALREADY IN YOUR ALBUM' : 'STICKER RECEIVED!'}</p>
@@ -1781,7 +2144,9 @@ function App() {
   }, [profile])
 
   const [mySticker, setMySticker] = useState<Sticker | null>(null)
-  const [receivedStickers, setReceivedStickers] = useState<Sticker[]>([])
+  const [receivedStickers, setReceivedStickers] = usePersistentState<Sticker[]>('puropera:received:v1', [])
+  const [placements, setPlacements] = usePersistentState<Placement[]>('puropera:placed:v1', demoPlacements)
+  const [notes, setNotes] = usePersistentState<GuestNote[]>('puropera:guest:v1', seedGuestNotes)
   const hasReceivedPublicSticker = receivedStickers.some(
     (sticker) => sticker.id === publicSticker.id,
   )
@@ -1801,7 +2166,18 @@ function App() {
     <AppShell>
       <Routes>
         <Route path="/" element={<HomePage profile={profile} stickerCount={stickers.length} />} />
-        <Route path="/profile" element={<ProfilePage profile={profile} />} />
+        <Route
+          path="/profile"
+          element={(
+            <ProfilePage
+              profile={profile}
+              stickers={stickers}
+              placements={placements}
+              onPlacementsChange={setPlacements}
+              notes={notes}
+            />
+          )}
+        />
         <Route
           path="/profile/edit"
           element={<EditProfilePage profile={profile} onSave={setProfile} />}
@@ -1827,7 +2203,13 @@ function App() {
         <Route path="/p/mio/received" element={<Navigate to="/p/hinata/received" replace />} />
         <Route
           path="/p/hinata"
-          element={<PublicProfilePage hasReceived={hasReceivedPublicSticker} />}
+          element={(
+            <PublicProfilePage
+              hasReceived={hasReceivedPublicSticker}
+              notes={notes}
+              onAddNote={(note) => setNotes((current) => [note, ...current])}
+            />
+          )}
         />
         <Route
           path="/p/hinata/receive"
